@@ -1,3 +1,8 @@
+---
+type: constitution
+status: active
+---
+
 # Pregoeiros — Constitution
 
 Durable, non-negotiable invariants for Pregoeiros, distilled from the
