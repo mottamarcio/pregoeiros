@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-50 text-slate-900">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pregoeiros — Inteligência e Exploração de Compras Públicas</title>
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Iconify CDN -->
+  <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+
+  <!-- Tailwind Configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
+              400: '#94a3b8',
+              500: '#64748b',
+              600: '#475569',
+              700: '#334155',
+              800: '#1e293b',
+              900: '#0f172a',
+              950: '#020617',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbars and fine typography */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .badge-dot::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .badge-emerald::before { background-color: #10b981; }
+    .badge-amber::before { background-color: #f59e0b; }
+    .badge-blue::before { background-color: #3b82f6; }
+    .badge-slate::before { background-color: #64748b; }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased text-slate-900 bg-white selection:bg-slate-900 selection:text-white">
+
+  <!-- Top Global Header -->
+  <header class="h-14 border-b border-slate-200 bg-white px-4 flex items-center justify-between sticky top-0 z-30 shrink-0">
+    <div class="flex items-center gap-3">
+      <!-- Mobile menu toggle button -->
+      <button id="btnToggleMobileSidebar" class="md:hidden p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors" aria-label="Menu principal">
+        <span class="iconify text-xl" data-icon="lucide:menu"></span>
+      </button>
+
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-2.5 cursor-pointer" onclick="navigate('dashboard')">
+        <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm shadow-sm tracking-tight">
+          <span class="iconify text-lg" data-icon="lucide:layers"></span>
+        </div>
+        <div>
+          <span class="font-bold text-base tracking-tight text-slate-900">Pregoeiros</span>
+          <span class="hidden sm:inline text-[11px] font-medium text-slate-500 ml-1.5 py-0.5 px-1.5 bg-slate-100 rounded border border-slate-200">Compras.gov</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Central Search Bar (with Command Palette trigger) -->
+    <div class="flex-1 max-w-xl mx-4 hidden sm:block">
+      <div class="relative group">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-slate-900 transition-colors">
+          <span class="iconify text-base" data-icon="lucide:search"></span>
+        </span>
+        <input 
+          type="text" 
+          id="globalSearchInput" 
+          placeholder="Buscar produtos, fornecedores, contratações... (Pressione / ou ⌘K)" 
+          class="w-full pl-9 pr-14 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900 focus:bg-white transition"
+          autocomplete="off"
+        />
+        <kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-white border border-slate-200 rounded shadow-xs pointer-events-none">
+          ⌘K
+        </kbd>
+      </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="flex items-center gap-2">
+      <!-- Sync Indicator -->
+      <div class="hidden lg:flex items-center gap-2 py-1 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" title="Sincronização com dados abertos Compras.gov.br">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-slate-500">Sync: <strong class="text-slate-700 font-medium font-mono text-[11px]">Hoje, 03:15</strong></span>
+        <span class="text-slate-300">|</span>
+        <span class="text-slate-600 font-mono text-[11px]">2.381 lidos</span>
+      </div>
+
+      <!-- Quick Radar Shortcut -->
+      <button onclick="navigate('radar')" class="relative p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors" title="Radar de Novidades">
+        <span class="iconify text-lg" data-icon="lucide:bell"></span>
+        <span id="headerRadarBadge" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-emerald-600 rounded-full ring-2 ring-white"></span>
+      </button>
+
+      <!-- Settings / System Status -->
+      <button onclick="openSyncStatusModal()" class="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors" title="Status dos Jobs e Ingestão">
+        <span class="iconify text-lg" data-icon="lucide:settings-2"></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex overflow-hidden">
+    <!-- Desktop Sidebar Navigation -->
+    <aside id="appSidebar" class="w-64 border-r border-slate-200 bg-slate-50 flex flex-col shrink-0 transition-transform duration-200 z-20 fixed md:static inset-y-14 left-0 -translate-x-full md:translate-x-0 h-[calc(100%-3.5rem)]">
+      <div class="flex-1 overflow-y-auto p-3 space-y-6">
+        
+        <!-- Primary section -->
+        <div class="space-y-1">
+          <button onclick="navigate('dashboard')" data-nav="dashboard" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-900 bg-white border border-slate-200 shadow-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="iconify text-slate-700 text-base" data-icon="lucide:layout-dashboard"></span>
+              <span>Visão geral</span>
+            </div>
+          </button>
+          
+          <button onclick="navigate('radar')" data-nav="radar" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+            <div class="flex items-center gap-2.5">
+              <span class="iconify text-slate-500 text-base" data-icon="lucide:radar"></span>
+              <span>Radar</span>
+            </div>
+            <span id="sidebarRadarCount" class="px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-800 rounded-full">12 novos</span>
+          </button>
+        </div>
+
+        <!-- Pillar: EXPLORAR -->
+        <div>
+          <div class="px-3 pb-2 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+            Explorar
+          </div>
+          <div class="space-y-1">
+            <button onclick="navigate('contratacoes')" data-nav="contratacoes" class="nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <span class="iconify text-slate-500 text-base" data-icon="lucide:file-text"></span>
+              <span>Contratações</span>
+            </button>
+            <button onclick="navigate('produtos')" data-nav="produtos" class="nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <span class="iconify text-slate-500 text-base" data-icon="lucide:package"></span>
+              <span>Produtos & Serviços</span>
+            </button>
+            <button onclick="navigate('fornecedores')" data-nav="fornecedores" class="nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <span class="iconify text-slate-500 text-base" data-icon="lucide:building-2"></span>
+              <span>Fornecedores</span>
+            </button>
+            <button onclick="navigate('contratos')" data-nav="contratos" class="nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <span class="iconify text-slate-500 text-base" data-icon="lucide:scroll"></span>
+              <span>Contratos & Vigências</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Pillar: ACOMPANHAR -->
+        <div>
+          <div class="px-3 pb-2 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+            Acompanhar
+          </div>
+          <div class="space-y-1">
+            <button onclick="navigate('favoritos')" data-nav="favoritos" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <div class="flex items-center gap-2.5">
+                <span class="iconify text-slate-500 text-base" data-icon="lucide:star"></span>
+                <span>Favoritos</span>
+              </div>
+              <span id="favsNavCount" class="text-[10px] text-slate-400 font-mono">3</span>
+            </button>
+            <button onclick="navigate('interesses')" data-nav="interesses" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <div class="flex items-center gap-2.5">
+                <span class="iconify text-slate-500 text-base" data-icon="lucide:bookmark-check"></span>
+                <span>Interesses</span>
+              </div>
+              <span id="interestsNavCount" class="text-[10px] text-slate-400 font-mono">3</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Pillar: ANALISAR -->
+        <div>
+          <div class="px-3 pb-2 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+            Analisar
+          </div>
+          <div class="space-y-1">
+            <button onclick="navigate('historico')" data-nav="historico" class="nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <span class="iconify text-slate-500 text-base" data-icon="lucide:history"></span>
+              <span>Histórico Observado</span>
+            </button>
+            <button onclick="navigate('precos')" data-nav="precos" class="nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <span class="iconify text-slate-500 text-base" data-icon="lucide:trending-up"></span>
+              <span>Preços Praticados</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom User/Sync Footnote -->
+      <div class="p-3 border-t border-slate-200 bg-white">
+        <div class="rounded-lg p-2.5 bg-slate-50 border border-slate-200 text-[11px] space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500">PostgreSQL Cache</span>
+            <span class="text-emerald-700 font-mono font-medium flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Conectado
+            </span>
+          </div>
+          <div class="text-[10px] text-slate-400 leading-tight">
+            Índices Lei 14.133/21 sincronizados. Próximo job às 03:00.
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Overlay backdrop for mobile sidebar -->
+    <div id="mobileBackdrop" class="fixed inset-0 bg-slate-900/40 z-10 hidden md:hidden" onclick="toggleMobileSidebar()"></div>
+
+    <!-- Main Content Container -->
+    <main id="mainContainer" class="flex-1 overflow-y-auto bg-white p-4 sm:p-6 lg:p-8">
+      
+      <!-- VIEW 1: DASHBOARD (HOME) -->
+      <section id="view-dashboard" class="max-w-6xl mx-auto space-y-8">
+        <!-- Welcome header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-950">Pregoeiros</h1>
+            <p class="text-sm text-slate-500 mt-1">Exploração e inteligência sobre contratações públicas federais e estaduais</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openModalCreateInterest()" class="px-3 py-2 text-xs font-medium bg-slate-900 hover:bg-slate-800 text-white rounded-lg inline-flex items-center gap-1.5 shadow-xs transition">
+              <span class="iconify text-sm" data-icon="lucide:plus"></span>
+              <span>Novo Interesse</span>
+            </button>
+            <button onclick="triggerQuickSync()" class="px-3 py-2 text-xs font-medium bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg inline-flex items-center gap-1.5 shadow-xs transition">
+              <span class="iconify text-sm text-slate-500" data-icon="lucide:refresh-cw"></span>
+              <span>Sincronizar</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Radar highlight banner -->
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <span class="iconify text-slate-900 text-lg" data-icon="lucide:radar"></span>
+              <h2 class="font-semibold text-sm text-slate-900 tracking-tight">Radar de Acompanhamento</h2>
+            </div>
+            <a href="javascript:navigate('radar')" class="text-xs font-medium text-slate-900 hover:underline flex items-center gap-1">
+              Ver todos os eventos <span class="iconify" data-icon="lucide:arrow-right"></span>
+            </a>
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="p-3 bg-white border border-slate-200 rounded-lg">
+              <div class="text-2xl font-bold text-slate-900 font-mono">12</div>
+              <div class="text-xs text-slate-500 mt-0.5">novas contratações hoje</div>
+            </div>
+            <div class="p-3 bg-white border border-slate-200 rounded-lg">
+              <div class="text-2xl font-bold text-emerald-700 font-mono">4</div>
+              <div class="text-xs text-slate-500 mt-0.5">interesses com novidades</div>
+            </div>
+            <div class="p-3 bg-white border border-slate-200 rounded-lg">
+              <div class="text-2xl font-bold text-slate-700 font-mono">3</div>
+              <div class="text-xs text-slate-500 mt-0.5">favoritos atualizados</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Two Columns: Interesses Ativos & Atividade Recente -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Seus Interesses -->
+          <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="iconify text-slate-700 text-base" data-icon="lucide:bookmark-check"></span>
+                <h3 class="font-semibold text-sm text-slate-900">Seus interesses monitorados</h3>
+              </div>
+              <button onclick="navigate('interesses')" class="text-xs text-slate-500 hover:text-slate-900">Gerenciar</button>
+            </div>
+            
+            <div id="dashboardInterestsList" class="space-y-2">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Atividade Recente -->
+          <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="iconify text-slate-700 text-base" data-icon="lucide:activity"></span>
+                <h3 class="font-semibold text-sm text-slate-900">Atividade recente na base</h3>
+              </div>
+              <span class="text-[11px] text-slate-400 font-mono">Eventos observados</span>
+            </div>
+
+            <div class="space-y-3" id="dashboardRecentActivity">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Question Cards (O que você quer saber hoje?) -->
+        <div class="border border-slate-200 rounded-xl p-5 bg-slate-50">
+          <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Respostas diretas às perguntas reais</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <button onclick="presetQuery('notebooks_rj')" class="text-left p-3.5 bg-white rounded-lg border border-slate-200 hover:border-slate-400 hover:shadow-xs transition group">
+              <span class="text-xs font-medium text-slate-900 block group-hover:text-slate-950">"Quais órgãos estão comprando notebooks no RJ?"</span>
+              <span class="text-[11px] text-slate-500 mt-1 block">Filtro: CATMAT 482910 + UF: RJ</span>
+            </button>
+            <button onclick="presetQuery('precos_monitores')" class="text-left p-3.5 bg-white rounded-lg border border-slate-200 hover:border-slate-400 hover:shadow-xs transition group">
+              <span class="text-xs font-medium text-slate-900 block group-hover:text-slate-950">"Quanto o governo vem pagando por monitores 27''?"</span>
+              <span class="text-[11px] text-slate-500 mt-1 block">Estatísticas derivadas: Mediana & Quartis</span>
+            </button>
+            <button onclick="presetQuery('contratos_vencendo')" class="text-left p-3.5 bg-white rounded-lg border border-slate-200 hover:border-slate-400 hover:shadow-xs transition group">
+              <span class="text-xs font-medium text-slate-900 block group-hover:text-slate-950">"Quais contratos de TI estão próximos do fim?"</span>
+              <span class="text-[11px] text-slate-500 mt-1 block">Vigência nos próximos 30-90 dias</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: CONTRATAÇÕES -->
+      <section id="view-contratacoes" class="max-w-6xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-950">Contratações</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Editais, dispensas e pregões sob a Lei nº 14.133/2021</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="exportData('csv', 'contratacoes')" class="px-2.5 py-1.5 text-xs font-medium bg-white text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 inline-flex items-center gap-1.5">
+              <span class="iconify" data-icon="lucide:download"></span> Exportar CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-[11px] font-medium text-slate-600 mb-1">Buscar por objeto / UASG</label>
+              <input type="text" id="procurementsSearch" oninput="filterProcurements()" placeholder="Ex: notebooks, limpeza, licença..." class="w-full text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900">
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium text-slate-600 mb-1">UF (Unidade da Federação)</label>
+              <select id="procurementsUf" onchange="filterProcurements()" class="w-full text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900">
+                <option value="">Todas as UFs</option>
+                <option value="RJ">RJ - Rio de Janeiro</option>
+                <option value="SP">SP - São Paulo</option>
+                <option value="DF">DF - Distrito Federal</option>
+                <option value="MG">MG - Minas Gerais</option>
+                <option value="RS">RS - Rio Grande do Sul</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium text-slate-600 mb-1">Modalidade</label>
+              <select id="procurementsModalidade" onchange="filterProcurements()" class="w-full text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900">
+                <option value="">Todas</option>
+                <option value="Pregão Eletrônico">Pregão Eletrônico</option>
+                <option value="Dispensa de Licitação">Dispensa</option>
+                <option value="Concorrência">Concorrência</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium text-slate-600 mb-1">Situação</label>
+              <select id="procurementsSituacao" onchange="filterProcurements()" class="w-full text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900">
+                <option value="">Todas</option>
+                <option value="Publicada">Publicada (Em andamento)</option>
+                <option value="Resultado Homologado">Resultado Homologado</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 text-xs">
+            <span class="text-slate-500" id="procurementsCount">Exibindo 6 contratações</span>
+            <button onclick="resetProcurementFilters()" class="text-slate-600 hover:text-slate-900 font-medium text-[11px]">Limpar filtros</button>
+          </div>
+        </div>
+
+        <!-- Table Desktop / Cards Mobile -->
+        <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium uppercase text-[10px] tracking-wider">
+                <tr>
+                  <th class="py-3 px-4">Objeto e Processo</th>
+                  <th class="py-3 px-4">Comprador / Órgão</th>
+                  <th class="py-3 px-4">UF</th>
+                  <th class="py-3 px-4">Modalidade</th>
+                  <th class="py-3 px-4">Valor Estimado</th>
+                  <th class="py-3 px-4">Situação</th>
+                  <th class="py-3 px-4 text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="procurementsTableBody" class="divide-y divide-slate-100">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: PRODUTOS & PREÇOS PRATICADOS -->
+      <section id="view-produtos" class="max-w-6xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-950">Produtos e Serviços (CATMAT / CATSER)</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Catálogo padronizado, preços praticados e análise estatística de compras governamentais</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-600 rounded-md font-mono">Fonte: API Compras.gov + Derivações</span>
+          </div>
+        </div>
+
+        <!-- Product Selector Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="productsCatalogGrid">
+          <!-- Injected via JS -->
+        </div>
+
+        <!-- Interactive Price Analysis Box for selected product -->
+        <div id="productDetailAnalyticsBox" class="border border-slate-200 rounded-xl p-5 bg-white space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-mono rounded border border-slate-200">CATMAT 482910</span>
+                <span class="text-xs text-slate-400 font-medium">Material</span>
+              </div>
+              <h2 id="activeProductName" class="text-lg font-bold text-slate-900 mt-1">Notebook 14'' Core i7 16GB 512GB SSD</h2>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnFavActiveProduct" onclick="toggleActiveProductFavorite()" class="px-3 py-1.5 text-xs font-medium border border-slate-200 hover:bg-slate-50 rounded-lg inline-flex items-center gap-1.5 transition">
+                <span class="iconify text-amber-500" data-icon="lucide:star"></span> Favoritar
+              </button>
+              <button onclick="createInterestForCurrentProduct()" class="px-3 py-1.5 text-xs font-medium bg-slate-900 text-white hover:bg-slate-800 rounded-lg inline-flex items-center gap-1.5 transition">
+                <span class="iconify" data-icon="lucide:plus"></span> Criar Interesse
+              </button>
+            </div>
+          </div>
+
+          <!-- Statistical Metrics (Explicitly distinguishing derived analytics from raw data) -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Estatísticas Derivadas pelo Pregoeiros</span>
+              <span class="text-[11px] text-slate-400">Base: últimos 24 meses (142 compras homologadas)</span>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="text-[11px] text-slate-500">Preço Mediana</div>
+                <div id="statMediana" class="text-base font-bold font-mono text-slate-950 mt-0.5">R$ 5.480,00</div>
+                <div class="text-[10px] text-emerald-600 mt-0.5">Mais robusto que a média</div>
+              </div>
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="text-[11px] text-slate-500">Média Calculada</div>
+                <div id="statMedia" class="text-base font-bold font-mono text-slate-950 mt-0.5">R$ 5.520,30</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">Desvio padrão: R$ 340</div>
+              </div>
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="text-[11px] text-slate-500">Preço Mínimo</div>
+                <div id="statMinimo" class="text-base font-bold font-mono text-slate-950 mt-0.5">R$ 4.790,00</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">TRF 2ª Região / RJ</div>
+              </div>
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="text-[11px] text-slate-500">Preço Máximo</div>
+                <div id="statMaximo" class="text-base font-bold font-mono text-slate-950 mt-0.5">R$ 6.320,00</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">Com garantia on-site 36m</div>
+              </div>
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg col-span-2 sm:col-span-1">
+                <div class="text-[11px] text-slate-500">Observações Registradas</div>
+                <div id="statObs" class="text-base font-bold font-mono text-slate-950 mt-0.5">327 itens</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">58 fornecedores únicos</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Price Trend Chart (SVG Visual representation) -->
+          <div class="border border-slate-200 rounded-lg p-4 bg-slate-50">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold text-slate-800 flex items-center gap-2">
+                <span class="iconify text-slate-500" data-icon="lucide:line-chart"></span> Tendência Histórica de Preços Praticados (2025 - 2026)
+              </span>
+              <div class="flex items-center gap-2 text-[11px] text-slate-500">
+                <span class="inline-flex items-center gap-1"><span class="w-3 h-0.5 bg-slate-900 inline-block"></span> Preço Homologado (R$)</span>
+                <span class="inline-flex items-center gap-1"><span class="w-3 h-0.5 bg-emerald-500 inline-block border-dashed"></span> Mediana Móvel</span>
+              </div>
+            </div>
+
+            <!-- SVG Sparkline / Graph -->
+            <div class="w-full h-44 bg-white rounded border border-slate-200 p-2 relative flex items-end">
+              <!-- Y Axis labels -->
+              <div class="absolute left-2 top-2 text-[10px] font-mono text-slate-400">R$ 6.500</div>
+              <div class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-mono text-slate-400">R$ 5.500</div>
+              <div class="absolute left-2 bottom-2 text-[10px] font-mono text-slate-400">R$ 4.500</div>
+
+              <!-- SVG Polyline -->
+              <svg class="w-full h-36 pl-14 pr-2" viewBox="0 0 500 120" preserveAspectRatio="none">
+                <!-- Gridlines -->
+                <line x1="0" y1="20" x2="500" y2="20" stroke="#f1f5f9" stroke-width="1" />
+                <line x1="0" y1="60" x2="500" y2="60" stroke="#f1f5f9" stroke-width="1" />
+                <line x1="0" y1="100" x2="500" y2="100" stroke="#f1f5f9" stroke-width="1" />
+
+                <!-- Median reference line -->
+                <line x1="0" y1="65" x2="500" y2="65" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4" />
+
+                <!-- Price Curve -->
+                <path d="M 0,90 Q 60,75 120,55 T 240,65 T 360,35 T 500,45" fill="none" stroke="#0f172a" stroke-width="2.5" />
+                
+                <!-- Data Points -->
+                <circle cx="0" cy="90" r="4" fill="#0f172a" />
+                <circle cx="120" cy="55" r="4" fill="#0f172a" />
+                <circle cx="240" cy="65" r="4" fill="#0f172a" />
+                <circle cx="360" cy="35" r="4" fill="#0f172a" />
+                <circle cx="500" cy="45" r="4" fill="#0f172a" />
+              </svg>
+            </div>
+            <div class="flex justify-between text-[10px] text-slate-400 font-mono mt-1.5 pl-14">
+              <span>Jan/25</span>
+              <span>Mai/25</span>
+              <span>Set/25</span>
+              <span>Jan/26</span>
+              <span>Atual (Set/26)</span>
+            </div>
+          </div>
+
+          <!-- Observed Recent Item Results -->
+          <div>
+            <h4 class="text-xs font-semibold text-slate-900 mb-2">Últimos Resultados de Itens Homologados</h4>
+            <div class="border border-slate-200 rounded-lg overflow-hidden text-xs">
+              <table class="w-full text-left">
+                <thead class="bg-slate-50 text-slate-500 font-medium text-[10px] uppercase border-b border-slate-200">
+                  <tr>
+                    <th class="py-2.5 px-3">Órgão Comprador</th>
+                    <th class="py-2.5 px-3">Fornecedor Vencedor</th>
+                    <th class="py-2.5 px-3">Qtd</th>
+                    <th class="py-2.5 px-3">Valor Unitário</th>
+                    <th class="py-2.5 px-3">Data Homologação</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr>
+                    <td class="py-2.5 px-3 font-medium text-slate-900">Tribunal Regional Federal da 2ª Região (RJ)</td>
+                    <td class="py-2.5 px-3 text-slate-600">Positivo Tecnologia S.A.</td>
+                    <td class="py-2.5 px-3 font-mono">150 un</td>
+                    <td class="py-2.5 px-3 font-mono font-medium text-slate-950">R$ 5.120,00</td>
+                    <td class="py-2.5 px-3 text-slate-500">12/09/2026</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-3 font-medium text-slate-900">Ministério da Saúde - DLOG</td>
+                    <td class="py-2.5 px-3 text-slate-600">Dell Computadores do Brasil Ltda</td>
+                    <td class="py-2.5 px-3 font-mono">400 un</td>
+                    <td class="py-2.5 px-3 font-mono font-medium text-slate-950">R$ 5.390,00</td>
+                    <td class="py-2.5 px-3 text-slate-500">08/09/2026</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-3 font-medium text-slate-900">Comando da Marinha - RJ</td>
+                    <td class="py-2.5 px-3 text-slate-600">Lenovo Tecnologia Brasil Ltda</td>
+                    <td class="py-2.5 px-3 font-mono">80 un</td>
+                    <td class="py-2.5 px-3 font-mono font-medium text-slate-950">R$ 5.480,00</td>
+                    <td class="py-2.5 px-3 text-slate-500">29/08/2026</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: FORNECEDORES -->
+      <section id="view-fornecedores" class="max-w-6xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-950">Fornecedores</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Empresas com resultados homologados observáveis nos dados abertos do Compras.gov.br</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="text" id="supplierSearchInput" oninput="filterSuppliers()" placeholder="Filtrar por Razão Social ou CNPJ..." class="text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-lg w-64 focus:outline-none focus:border-slate-900">
+          </div>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 flex items-start gap-2">
+          <span class="iconify text-base text-amber-700 shrink-0 mt-0.5" data-icon="lucide:info"></span>
+          <span><strong>Rigor terminológico do Pregoeiros:</strong> A métrica exibida reflete resultados homologados observáveis na base importada, e não necessariamente o total absoluto de contratos em órgãos não integrados.</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="suppliersGrid">
+          <!-- Injected via JS -->
+        </div>
+      </section>
+
+      <!-- VIEW 5: CONTRATOS & VIGÊNCIAS -->
+      <section id="view-contratos" class="max-w-6xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-950">Contratos & Próximos Vencimentos</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Acompanhamento preditivo de renovações e novos editais por expiração de vigência</p>
+          </div>
+        </div>
+
+        <!-- Metric badges for expiration windows -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="p-4 bg-red-50 border border-red-200 rounded-xl">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-red-900">Vencimento em 30 dias</span>
+              <span class="iconify text-red-700 text-lg" data-icon="lucide:alert-circle"></span>
+            </div>
+            <div class="text-2xl font-bold font-mono text-red-950 mt-1">87</div>
+            <div class="text-[11px] text-red-700 mt-0.5">Oportunidades imediatas de novo edital</div>
+          </div>
+          <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-amber-900">Vencimento em 60 dias</span>
+              <span class="iconify text-amber-700 text-lg" data-icon="lucide:clock"></span>
+            </div>
+            <div class="text-2xl font-bold font-mono text-amber-950 mt-1">143</div>
+            <div class="text-[11px] text-amber-700 mt-0.5">Em fase de planejamento pelos órgãos</div>
+          </div>
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-800">Vencimento em 90 dias</span>
+              <span class="iconify text-slate-600 text-lg" data-icon="lucide:calendar"></span>
+            </div>
+            <div class="text-2xl font-bold font-mono text-slate-900 mt-1">211</div>
+            <div class="text-[11px] text-slate-600 mt-0.5">Previsão orçamentária mapeada</div>
+          </div>
+        </div>
+
+        <!-- Contracts Table -->
+        <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium text-[10px] uppercase">
+              <tr>
+                <th class="py-3 px-4">Contrato / Número</th>
+                <th class="py-3 px-4">Órgão Contratante</th>
+                <th class="py-3 px-4">Fornecedor</th>
+                <th class="py-3 px-4">Fim de Vigência</th>
+                <th class="py-3 px-4">Valor Total</th>
+                <th class="py-3 px-4">Status de Alerta</th>
+              </tr>
+            </thead>
+            <tbody id="contractsTableBody" class="divide-y divide-slate-100">
+              <!-- Injected via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 6: RADAR -->
+      <section id="view-radar" class="max-w-5xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl font-bold tracking-tight text-slate-950">Radar</h1>
+              <span class="px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-800 rounded-full" id="radarUnreadBadge">4 não vistos</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Caixa de entrada inteligente: novas contratações, homologações e contratos relevantes</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="markAllRadarRead()" class="px-3 py-1.5 text-xs font-medium border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg inline-flex items-center gap-1.5 transition">
+              <span class="iconify" data-icon="lucide:check-check"></span> Marcar todos como vistos
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="flex items-center gap-2 border-b border-slate-200 text-xs">
+          <button onclick="filterRadar('all')" class="radar-tab pb-2.5 px-1 font-medium text-slate-900 border-b-2 border-slate-900">Todos</button>
+          <button onclick="filterRadar('unread')" class="radar-tab pb-2.5 px-1 font-medium text-slate-500 hover:text-slate-900">Apenas não vistos</button>
+          <button onclick="filterRadar('contratacao')" class="radar-tab pb-2.5 px-1 font-medium text-slate-500 hover:text-slate-900">Contratações</button>
+          <button onclick="filterRadar('resultado')" class="radar-tab pb-2.5 px-1 font-medium text-slate-500 hover:text-slate-900">Resultados</button>
+        </div>
+
+        <!-- Radar Feed -->
+        <div id="radarEventFeed" class="space-y-3">
+          <!-- Injected via JS -->
+        </div>
+      </section>
+
+      <!-- VIEW 7: FAVORITOS -->
+      <section id="view-favoritos" class="max-w-5xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-950">Favoritos</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Entidades específicas (contratações, produtos e fornecedores) que você decidiu acompanhar</p>
+          </div>
+        </div>
+
+        <!-- Favoritos Category Filter -->
+        <div class="flex items-center gap-2 text-xs">
+          <button onclick="filterFavorites('all')" class="fav-tab px-3 py-1.5 bg-slate-900 text-white rounded-lg font-medium">Todos</button>
+          <button onclick="filterFavorites('produto')" class="fav-tab px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg font-medium">Produtos</button>
+          <button onclick="filterFavorites('fornecedor')" class="fav-tab px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg font-medium">Fornecedores</button>
+          <button onclick="filterFavorites('contratacao')" class="fav-tab px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg font-medium">Contratações</button>
+        </div>
+
+        <div id="favoritesList" class="space-y-3">
+          <!-- Injected via JS -->
+        </div>
+      </section>
+
+      <!-- VIEW 8: INTERESSES -->
+      <section id="view-interesses" class="max-w-5xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-950">Regras de Interesse</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Regras automatizadas de acompanhamento que disparam alertas no Radar</p>
+          </div>
+          <button onclick="openModalCreateInterest()" class="px-3 py-2 text-xs font-medium bg-slate-900 hover:bg-slate-800 text-white rounded-lg inline-flex items-center gap-1.5 shadow-xs transition">
+            <span class="iconify text-sm" data-icon="lucide:plus"></span>
+            <span>Criar Novo Interesse</span>
+          </button>
+        </div>
+
+        <div id="interestsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Injected via JS -->
+        </div>
+      </section>
+
+      <!-- VIEW 9: HISTÓRICO & INTELIGÊNCIA ANALÍTICA -->
+      <section id="view-historico" class="max-w-6xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-950">Histórico Observado & Analytics</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Análise multidimensional agregada de resultados de itens e compras públicas</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="exportData('json', 'historico')" class="px-2.5 py-1.5 text-xs font-medium bg-white text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 inline-flex items-center gap-1.5">
+              <span class="iconify" data-icon="lucide:download"></span> Exportar Dataset JSON
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Banner -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <span class="text-xs font-medium text-slate-500">Resultados Observados</span>
+            <div class="text-2xl font-bold font-mono text-slate-950 mt-1">12.483</div>
+            <span class="text-[11px] text-slate-400">Homologados nos últimos 12 meses</span>
+          </div>
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <span class="text-xs font-medium text-slate-500">Fornecedores com Resultados</span>
+            <div class="text-2xl font-bold font-mono text-slate-950 mt-1">418</div>
+            <span class="text-[11px] text-slate-400">CNPJs com ao menos 1 item adjudicado</span>
+          </div>
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <span class="text-xs font-medium text-slate-500">Órgãos Compradores Ativos</span>
+            <div class="text-2xl font-bold font-mono text-slate-950 mt-1">731</div>
+            <span class="text-[11px] text-slate-400">UASGs federadas cadastradas</span>
+          </div>
+        </div>
+
+        <!-- Ranking de Fornecedores por Resultados Observados -->
+        <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-semibold text-sm text-slate-900">Fornecedores por Volume de Resultados Homologados</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Métrica precisa: itens adjudicados com sucesso no período selecionado</p>
+            </div>
+            <span class="text-xs font-mono text-slate-400">Filtro: Nacional</span>
+          </div>
+
+          <div class="border border-slate-200 rounded-lg overflow-hidden text-xs">
+            <table class="w-full text-left">
+              <thead class="bg-slate-50 text-slate-500 font-medium uppercase text-[10px] border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-4">Posição & Razão Social</th>
+                  <th class="py-3 px-4">CNPJ</th>
+                  <th class="py-3 px-4">Resultados Homologados</th>
+                  <th class="py-3 px-4">Valor Total Estimado</th>
+                  <th class="py-3 px-4">Principal Categoria</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr>
+                  <td class="py-3 px-4 font-semibold text-slate-900">
+                    <span class="text-slate-400 font-mono mr-2">#1</span> Positivo Tecnologia S.A.
+                  </td>
+                  <td class="py-3 px-4 font-mono text-slate-500">01.076.218/0001-65</td>
+                  <td class="py-3 px-4 font-mono font-medium text-slate-900">432 itens</td>
+                  <td class="py-3 px-4 font-mono font-medium text-slate-950">R$ 142.800.000,00</td>
+                  <td class="py-3 px-4 text-slate-600">Equipamentos de Informática</td>
+                </tr>
+                <tr>
+                  <td class="py-3 px-4 font-semibold text-slate-900">
+                    <span class="text-slate-400 font-mono mr-2">#2</span> Dell Computadores do Brasil Ltda
+                  </td>
+                  <td class="py-3 px-4 font-mono text-slate-500">72.381.189/0001-10</td>
+                  <td class="py-3 px-4 font-mono font-medium text-slate-900">319 itens</td>
+                  <td class="py-3 px-4 font-mono font-medium text-slate-950">R$ 189.450.000,00</td>
+                  <td class="py-3 px-4 text-slate-600">Servidores & Laptops</td>
+                </tr>
+                <tr>
+                  <td class="py-3 px-4 font-semibold text-slate-900">
+                    <span class="text-slate-400 font-mono mr-2">#3</span> ACME Soluções Hospitalares Ltda
+                  </td>
+                  <td class="py-3 px-4 font-mono text-slate-500">12.345.678/0001-90</td>
+                  <td class="py-3 px-4 font-mono font-medium text-slate-900">287 itens</td>
+                  <td class="py-3 px-4 font-mono font-medium text-slate-950">R$ 38.210.000,00</td>
+                  <td class="py-3 px-4 text-slate-600">Material Médico Hospitalar</td>
+                </tr>
+                <tr>
+                  <td class="py-3 px-4 font-semibold text-slate-900">
+                    <span class="text-slate-400 font-mono mr-2">#4</span> TechSupply Comércio & Distribuição
+                  </td>
+                  <td class="py-3 px-4 font-mono text-slate-500">22.881.902/0001-44</td>
+                  <td class="py-3 px-4 font-mono font-medium text-slate-900">194 itens</td>
+                  <td class="py-3 px-4 font-mono font-medium text-slate-950">R$ 21.600.000,00</td>
+                  <td class="py-3 px-4 text-slate-600">Suprimentos e Periféricos</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL: CRIAR NOVO INTERESSE -->
+  <div id="modalCreateInterest" class="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-slate-200 rounded-xl shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="iconify text-slate-900 text-lg" data-icon="lucide:bookmark-plus"></span>
+          <h3 class="font-bold text-sm text-slate-900">Criar Regra de Interesse</h3>
+        </div>
+        <button onclick="closeModalCreateInterest()" class="text-slate-400 hover:text-slate-700">
+          <span class="iconify text-lg" data-icon="lucide:x"></span>
+        </button>
+      </div>
+
+      <form id="formCreateInterest" onsubmit="handleSaveInterest(event)" class="p-5 space-y-4 text-xs">
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">Nome do Interesse</label>
+          <input type="text" id="interestInputName" required placeholder="Ex: Notebooks no RJ, Tomógrafos SP" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900 text-xs">
+          <span class="text-[10px] text-slate-400 mt-1 block">Rótulo que aparecerá no seu dashboard e nos alertas do Radar</span>
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">Produto / Serviço (CATMAT / CATSER)</label>
+          <select id="interestInputProduct" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900 text-xs">
+            <option value="Notebook 14'' Core i7">Notebook 14'' Core i7 (CATMAT 482910)</option>
+            <option value="Monitor 27'' IPS">Monitor 27'' IPS 4K (CATMAT 439120)</option>
+            <option value="Ar Condicionado Split 18.000 BTUs">Ar Condicionado Split (CATMAT 392102)</option>
+            <option value="Material Hospitalar Descartável">Material Hospitalar (CATMAT 192834)</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">UF (Opcional)</label>
+            <select id="interestInputUf" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900 text-xs">
+              <option value="Todos">Brasil (Todas)</option>
+              <option value="RJ">RJ - Rio de Janeiro</option>
+              <option value="SP">SP - São Paulo</option>
+              <option value="DF">DF - Distrito Federal</option>
+              <option value="MG">MG - Minas Gerais</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Comprador</label>
+            <select id="interestInputBuyer" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900 text-xs">
+              <option value="Todos">Todos os órgãos</option>
+              <option value="TRF 2ª Região">Poder Judiciário</option>
+              <option value="Ministério da Saúde">Ministérios (Executivo)</option>
+              <option value="Forças Armadas">Forças Armadas</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModalCreateInterest()" class="px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium shadow-xs">Salvar Interesse</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALHES DE CONTRATAÇÃO (LEI 14.133) -->
+  <div id="modalProcurementDetail" class="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-slate-200 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in duration-150">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-start justify-between bg-slate-50">
+        <div>
+          <span id="detailBadgeStatus" class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-800 rounded">Publicada</span>
+          <h2 id="detailProcurementTitle" class="text-base font-bold text-slate-900 mt-1">Aquisição de equipamentos de tecnologia da informação</h2>
+          <div class="text-xs text-slate-500 flex items-center gap-2 mt-1">
+            <span id="detailProcurementOrg">Órgão: Tribunal Regional Federal da 2ª Região</span>
+            <span>•</span>
+            <span id="detailProcurementUasg">UASG: 090028</span>
+          </div>
+        </div>
+        <button onclick="closeModalProcurementDetail()" class="text-slate-400 hover:text-slate-700 p-1">
+          <span class="iconify text-xl" data-icon="lucide:x"></span>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-6 text-xs flex-1">
+        <!-- Sub tabs inside detail modal -->
+        <div class="flex items-center gap-4 border-b border-slate-200 text-xs">
+          <button class="pb-2 font-medium text-slate-900 border-b-2 border-slate-900">Itens e Lotes</button>
+          <button class="pb-2 font-medium text-slate-400 hover:text-slate-700">Resultados Homologados</button>
+          <button class="pb-2 font-medium text-slate-400 hover:text-slate-700">Histórico de Alterações</button>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+            <span class="text-slate-500 text-[11px]">Processo SEI</span>
+            <div id="detailProcesso" class="font-mono font-medium text-slate-900 mt-0.5">0012938/2026</div>
+          </div>
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+            <span class="text-slate-500 text-[11px]">Modalidade</span>
+            <div id="detailModalidade" class="font-medium text-slate-900 mt-0.5">Pregão Eletrônico</div>
+          </div>
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+            <span class="text-slate-500 text-[11px]">Valor Total Estimado</span>
+            <div id="detailValor" class="font-mono font-bold text-slate-950 mt-0.5">R$ 1.840.000,00</div>
+          </div>
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+            <span class="text-slate-500 text-[11px]">Total de Itens</span>
+            <div class="font-mono font-bold text-slate-950 mt-0.5">3 Itens</div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-semibold text-slate-900 mb-2">Itens da Contratação</h4>
+          <div class="border border-slate-200 rounded-lg overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-500 font-medium text-[10px] uppercase border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Item</th>
+                  <th class="py-2.5 px-3">CATMAT / Descrição</th>
+                  <th class="py-2.5 px-3">Qtd</th>
+                  <th class="py-2.5 px-3">Valor Unit. Estimado</th>
+                  <th class="py-2.5 px-3">Valor Total</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr>
+                  <td class="py-2.5 px-3 font-mono">1</td>
+                  <td class="py-2.5 px-3">
+                    <div class="font-medium text-slate-900">Notebook 14'' Core i7 16GB 512GB SSD</div>
+                    <div class="text-[10px] text-slate-400 font-mono">CATMAT: 482910</div>
+                  </td>
+                  <td class="py-2.5 px-3 font-mono">250</td>
+                  <td class="py-2.5 px-3 font-mono">R$ 5.480,00</td>
+                  <td class="py-2.5 px-3 font-mono font-medium text-slate-900">R$ 1.370.000,00</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 px-3 font-mono">2</td>
+                  <td class="py-2.5 px-3">
+                    <div class="font-medium text-slate-900">Monitor 27'' IPS 4K com ajuste de altura</div>
+                    <div class="text-[10px] text-slate-400 font-mono">CATMAT: 439120</div>
+                  </td>
+                  <td class="py-2.5 px-3 font-mono">200</td>
+                  <td class="py-2.5 px-3 font-mono">R$ 1.850,00</td>
+                  <td class="py-2.5 px-3 font-mono font-medium text-slate-900">R$ 370.000,00</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 px-3 font-mono">3</td>
+                  <td class="py-2.5 px-3">
+                    <div class="font-medium text-slate-900">Docking Station USB-C Thunderbolt 4</div>
+                    <div class="text-[10px] text-slate-400 font-mono">CATMAT: 401928</div>
+                  </td>
+                  <td class="py-2.5 px-3 font-mono">100</td>
+                  <td class="py-2.5 px-3 font-mono">R$ 1.000,00</td>
+                  <td class="py-2.5 px-3 font-mono font-medium text-slate-900">R$ 100.000,00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs">
+        <span class="text-slate-400 font-mono">ID: 090028-05-00042/2026</span>
+        <button onclick="closeModalProcurementDetail()" class="px-4 py-1.5 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ESTADO DE SINCRONIZAÇÃO (SYNC RUNS) -->
+  <div id="modalSyncStatus" class="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-slate-200 rounded-xl shadow-xl max-w-lg w-full overflow-hidden text-xs">
+      <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="iconify text-slate-900 text-lg" data-icon="lucide:database"></span>
+          <h3 class="font-bold text-slate-900">Estado da Ingestão de Dados</h3>
+        </div>
+        <button onclick="closeSyncStatusModal()" class="text-slate-400 hover:text-slate-700">
+          <span class="iconify text-lg" data-icon="lucide:x"></span>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <p class="text-slate-500">Pipeline de ingestão incremental com armazenamento persistente em PostgreSQL e disparos idempotentes.</p>
+        
+        <div class="border border-slate-200 rounded-lg divide-y divide-slate-100">
+          <div class="p-3 flex items-center justify-between">
+            <div>
+              <div class="font-medium text-slate-900">Contratações (Lei 14.133)</div>
+              <div class="text-[11px] text-slate-400">Atualizado há 12 minutos • 1.482 registros</div>
+            </div>
+            <span class="text-emerald-700 font-medium font-mono text-[11px] flex items-center gap-1">
+              <span class="iconify text-emerald-600" data-icon="lucide:check-circle-2"></span> OK
+            </span>
+          </div>
+          <div class="p-3 flex items-center justify-between">
+            <div>
+              <div class="font-medium text-slate-900">Resultados de Itens & Homologações</div>
+              <div class="text-[11px] text-slate-400">Atualizado há 14 minutos • 3.209 registros</div>
+            </div>
+            <span class="text-emerald-700 font-medium font-mono text-[11px] flex items-center gap-1">
+              <span class="iconify text-emerald-600" data-icon="lucide:check-circle-2"></span> OK
+            </span>
+          </div>
+          <div class="p-3 flex items-center justify-between">
+            <div>
+              <div class="font-medium text-slate-900">Preços Praticados</div>
+              <div class="text-[11px] text-slate-400">Atualizado há 3 horas • 14.890 observações</div>
+            </div>
+            <span class="text-emerald-700 font-medium font-mono text-[11px] flex items-center gap-1">
+              <span class="iconify text-emerald-600" data-icon="lucide:check-circle-2"></span> OK
+            </span>
+          </div>
+          <div class="p-3 flex items-center justify-between">
+            <div>
+              <div class="font-medium text-slate-900">CATMAT / CATSER (Catálogo)</div>
+              <div class="text-[11px] text-slate-400">Atualizado ontem • 281.000 itens</div>
+            </div>
+            <span class="text-emerald-700 font-medium font-mono text-[11px] flex items-center gap-1">
+              <span class="iconify text-emerald-600" data-icon="lucide:check-circle-2"></span> OK
+            </span>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-600 space-y-1">
+          <div class="font-medium text-slate-900">Estratégia de Resiliência</div>
+          <div>Caso a API do Compras.gov apresente instabilidade ou timeout, o Pregoeiros serve dados históricos cacheados com sinalização explícita de frescor dos dados.</div>
+        </div>
+      </div>
+
+      <div class="px-5 py-3 border-t border-slate-200 bg-slate-50 flex justify-end">
+        <button onclick="closeSyncStatusModal()" class="px-4 py-1.5 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastNotification" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs flex items-center gap-2.5 -translate-y-12 opacity-0 pointer-events-none transition-all duration-200 z-50">
+    <span class="iconify text-emerald-400 text-base" data-icon="lucide:check-circle"></span>
+    <span id="toastMessage">Operação realizada com sucesso.</span>
+  </div>
+
+  <!-- JavaScript Business Logic & State Management -->
+  <script>
+    // State Store (Reactive Mock Model aligned with PRD Postgres tables)
+    const state = {
+      activeView: 'dashboard',
+      
+      // Favorites collection
+      favorites: [
+        { id: 'fav-1', type: 'produto', title: 'Notebook 14\'\' Core i7 16GB SSD', code: 'CATMAT 482910', date: 'Adicionado ontem' },
+        { id: 'fav-2', type: 'fornecedor', title: 'Positivo Tecnologia S.A.', code: 'CNPJ 01.076.218/0001-65', date: 'Adicionado há 3 dias' },
+        { id: 'fav-3', type: 'contratacao', title: 'Aquisição de equipamentos de informática TRF2', code: 'PE 42/2026', date: 'Adicionado semana passada' }
+      ],
+
+      // Monitoring Interests rules
+      interests: [
+        { id: 'int-1', name: 'Notebooks · RJ', product: 'Notebook 14\'\' Core i7', uf: 'RJ', buyer: 'Todos', newMatches: 7 },
+        { id: 'int-2', name: 'Material Hospitalar · SP', product: 'Material Hospitalar Descartável', uf: 'SP', buyer: 'Ministério da Saúde', newMatches: 3 },
+        { id: 'int-3', name: 'Ar condicionado', product: 'Ar Condicionado Split 18.000 BTUs', uf: 'Todos', buyer: 'Todos', newMatches: 2 }
+      ],
+
+      // Radar events (Inbox)
+      radarEvents: [
+        { id: 'rad-1', type: 'contratacao', title: 'Nova contratação publicada', subtitle: 'Corresponde ao interesse "Notebooks · RJ"', detail: 'TRF 2ª Região - Pregão Eletrônico 42/2026', time: 'há 23 minutos', isNew: true, seen: false },
+        { id: 'rad-2', type: 'resultado', title: 'Resultado publicado em contratação favoritada', subtitle: 'Homologação de 150 itens para Positivo Tecnologia', detail: 'UASG 090028 - Lote 1', time: 'há 2 horas', isNew: true, seen: false },
+        { id: 'rad-3', type: 'contrato', title: 'Contrato acompanhado próximo do fim de vigência', subtitle: 'Vigência encerra em 28 dias', detail: 'Ministério da Fazenda • Manutenção TI', time: 'há 5 horas', isNew: true, seen: false },
+        { id: 'rad-4', type: 'contratacao', title: 'Nova contratação publicada', subtitle: 'Corresponde ao interesse "Material Hospitalar · SP"', detail: 'Hospital das Clínicas - Pregão 104/2026', time: 'ontem', isNew: false, seen: true }
+      ],
+
+      // Procurements Dataset
+      procurements: [
+        { id: 'p-1', objeto: 'Aquisição de notebooks de alta performance com garantia on-site 36 meses', comprador: 'Tribunal Regional Federal da 2ª Região', uf: 'RJ', modalidade: 'Pregão Eletrônico', valor: 1840000, situacao: 'Publicada', processo: '0012938/2026', uasg: '090028' },
+        { id: 'p-2', objeto: 'Fornecimento continuado de material hospitalar e insumos descartáveis', comprador: 'Ministério da Saúde - DLOG', uf: 'DF', modalidade: 'Pregão Eletrônico', valor: 8900000, situacao: 'Publicada', processo: '25000.109283/2026', uasg: '250005' },
+        { id: 'p-3', objeto: 'Contratação emergencial de reagentes diagnósticos e testes rápidos', comprador: 'Secretaria Estadual de Saúde - SES/SP', uf: 'SP', modalidade: 'Dispensa de Licitação', valor: 450000, situacao: 'Resultado Homologado', processo: 'SES-SP-2026/891', uasg: '925001' },
+        { id: 'p-4', objeto: 'Renovação do parque computacional e monitores ergonômicos 27 polegadas', comprador: 'Superintendência da Polícia Federal', uf: 'RJ', modalidade: 'Pregão Eletrônico', valor: 620000, situacao: 'Publicada', processo: '08200.003912/2026', uasg: '200109' },
+        { id: 'p-5', objeto: 'Manutenção preventiva e corretiva com substituição de sistemas de climatização', comprador: 'Comando da Aeronáutica - GAP-DF', uf: 'DF', modalidade: 'Concorrência', valor: 1250000, situacao: 'Publicada', processo: '67200.001928/2026', uasg: '120015' },
+        { id: 'p-6', objeto: 'Aquisição de estações de trabalho e equipamentos periféricos para cartórios', comprador: 'Tribunal de Justiça de Minas Gerais', uf: 'MG', modalidade: 'Pregão Eletrônico', valor: 3100000, situacao: 'Resultado Homologado', processo: 'TJMG-2026/0491', uasg: '926001' }
+      ],
+
+      // Products Catalog (CATMAT/CATSER)
+      products: [
+        { id: 'prod-1', catmat: '482910', nome: 'Notebook 14\'\' Core i7 16GB 512GB SSD', tipo: 'Material', mediana: 5480, min: 4790, max: 6320, obs: 327 },
+        { id: 'prod-2', catmat: '439120', nome: 'Monitor 27\'\' IPS 4K com ajuste', tipo: 'Material', mediana: 1850, min: 1490, max: 2300, obs: 184 },
+        { id: 'prod-3', catmat: '392102', nome: 'Ar Condicionado Split 18.000 BTUs Inverter', tipo: 'Material', mediana: 3290, min: 2800, max: 4100, obs: 92 }
+      ],
+
+      // Suppliers
+      suppliers: [
+        { id: 'sup-1', nome: 'Positivo Tecnologia S.A.', cnpj: '01.076.218/0001-65', resultados: 432, valorTotal: 'R$ 142.800.000,00', principalItem: 'Notebooks e Desktops', compradores: 114 },
+        { id: 'sup-2', nome: 'Dell Computadores do Brasil Ltda', cnpj: '72.381.189/0001-10', resultados: 319, valorTotal: 'R$ 189.450.000,00', principalItem: 'Servidores e Notebooks', compradores: 98 },
+        { id: 'sup-3', nome: 'ACME Soluções Hospitalares Ltda', cnpj: '12.345.678/0001-90', resultados: 287, valorTotal: 'R$ 38.210.000,00', principalItem: 'Insumos Hospitalares', compradores: 64 },
+        { id: 'sup-4', nome: 'TechSupply Comércio e Serviços Ltda', cnpj: '22.881.902/0001-44', resultados: 194, valorTotal: 'R$ 21.600.000,00', principalItem: 'Monitores e Periféricos', compradores: 51 }
+      ],
+
+      // Contracts with expiration dates
+      contracts: [
+        { id: 'c-1', numero: 'Contrato nº 14/2023', orgao: 'Ministério da Fazenda', fornecedor: 'TechSupply Comércio Ltda', fimVigencia: '14/10/2026 (28 dias)', valor: 'R$ 1.450.000,00', statusColor: 'red', statusText: 'Vencendo em < 30 dias' },
+        { id: 'c-2', numero: 'Contrato nº 08/2024', orgao: 'Tribunal Regional Federal 2ª Região', fornecedor: 'Dell Computadores Ltda', fimVigencia: '02/11/2026 (47 dias)', valor: 'R$ 3.890.000,00', statusColor: 'amber', statusText: 'Vencendo em < 60 dias' },
+        { id: 'c-3', numero: 'Contrato nº 45/2022', orgao: 'Superintendência da Polícia Federal - RJ', fornecedor: 'Positivo Tecnologia S.A.', fimVigencia: '29/11/2026 (74 dias)', valor: 'R$ 820.000,00', statusColor: 'slate', statusText: 'Vencendo em < 90 dias' }
+      ]
+    };
+
+    // Navigation routing logic
+    function navigate(viewName) {
+      state.activeView = viewName;
+
+      // Toggle views visibility
+      const views = ['dashboard', 'contratacoes', 'produtos', 'fornecedores', 'contratos', 'radar', 'favoritos', 'interesses', 'historico', 'precos'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) {
+          if (v === viewName || (viewName === 'precos' && v === 'produtos')) {
+            el.classList.remove('hidden');
+          } else {
+            el.classList.add('hidden');
+          }
+        }
+      });
+
+      // Update sidebar active classes
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        const nav = btn.getAttribute('data-nav');
+        if (nav === viewName || (viewName === 'precos' && nav === 'precos')) {
+          btn.className = 'nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-900 bg-white border border-slate-200 shadow-xs';
+        } else {
+          btn.className = 'nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors';
+        }
+      });
+
+      // Close mobile sidebar when navigated
+      closeMobileSidebar();
+
+      // Scroll top
+      document.getElementById('mainContainer').scrollTop = 0;
+    }
+
+    // Toggle Mobile Sidebar
+    function toggleMobileSidebar() {
+      const sb = document.getElementById('appSidebar');
+      const bd = document.getElementById('mobileBackdrop');
+      const isOpen = !sb.classList.contains('-translate-x-full');
+      if (isOpen) {
+        sb.classList.add('-translate-x-full');
+        bd.classList.add('hidden');
+      } else {
+        sb.classList.remove('-translate-x-full');
+        bd.classList.remove('hidden');
+      }
+    }
+    function closeMobileSidebar() {
+      const sb = document.getElementById('appSidebar');
+      const bd = document.getElementById('mobileBackdrop');
+      sb.classList.add('-translate-x-full');
+      bd.classList.add('hidden');
+    }
+    document.getElementById('btnToggleMobileSidebar').addEventListener('click', toggleMobileSidebar);
+
+    // Render Dashboard Interesses and Activity
+    function renderDashboard() {
+      // Interesses list
+      const intContainer = document.getElementById('dashboardInterestsList');
+      intContainer.innerHTML = state.interests.map(item => `
+        <div onclick="filterProcurementsByInterest('${item.product}', '${item.uf}')" class="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition cursor-pointer group">
+          <div class="flex items-center gap-2.5">
+            <span class="iconify text-slate-400 group-hover:text-slate-900 transition-colors text-base" data-icon="lucide:bookmark"></span>
+            <div>
+              <div class="text-xs font-semibold text-slate-900">${item.name}</div>
+              <div class="text-[11px] text-slate-500">${item.product} · ${item.uf === 'Todos' ? 'Brasil' : item.uf}</div>
+            </div>
+          </div>
+          <span class="px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">
+            ${item.newMatches} novos
+          </span>
+        </div>
+      `).join('');
+
+      // Recent Activity Feed
+      const actContainer = document.getElementById('dashboardRecentActivity');
+      actContainer.innerHTML = `
+        <div class="flex items-start gap-3 p-2.5 rounded-lg hover:bg-slate-50 transition">
+          <div class="w-7 h-7 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 shrink-0 mt-0.5">
+            <span class="iconify text-sm" data-icon="lucide:file-plus"></span>
+          </div>
+          <div class="flex-1">
+            <div class="text-xs font-medium text-slate-900">Nova contratação compatível com "Notebooks · RJ"</div>
+            <div class="text-[11px] text-slate-500">TRF 2ª Região publicou Pregão Eletrônico nº 42/2026</div>
+            <span class="text-[10px] text-slate-400 font-mono">Hoje, há 23 minutos</span>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 p-2.5 rounded-lg hover:bg-slate-50 transition">
+          <div class="w-7 h-7 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0 mt-0.5">
+            <span class="iconify text-sm" data-icon="lucide:check-circle"></span>
+          </div>
+          <div class="flex-1">
+            <div class="text-xs font-medium text-slate-900">Resultado publicado em contratação favoritada</div>
+            <div class="text-[11px] text-slate-500">Positivo Tecnologia homologada no Lote 1 da UASG 090028</div>
+            <span class="text-[10px] text-slate-400 font-mono">Hoje, há 2 horas</span>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 p-2.5 rounded-lg hover:bg-slate-50 transition">
+          <div class="w-7 h-7 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 shrink-0 mt-0.5">
+            <span class="iconify text-sm" data-icon="lucide:clock"></span>
+          </div>
+          <div class="flex-1">
+            <div class="text-xs font-medium text-slate-900">Contrato acompanhado próximo do fim de vigência</div>
+            <div class="text-[11px] text-slate-500">Contrato nº 14/2023 - Ministério da Fazenda expira em 28 dias</div>
+            <span class="text-[10px] text-slate-400 font-mono">Hoje, há 5 horas</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // Render Procurements Table
+    function renderProcurements(items = state.procurements) {
+      const tbody = document.getElementById('procurementsTableBody');
+      const countEl = document.getElementById('procurementsCount');
+      if (!tbody) return;
+
+      countEl.textContent = `Exibindo ${items.length} contratações`;
+
+      if (items.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="py-8 text-center text-slate-400 text-xs">
+              Nenhuma contratação encontrada com os filtros selecionados.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = items.map(p => `
+        <tr class="hover:bg-slate-50/80 transition-colors">
+          <td class="py-3 px-4">
+            <div class="font-semibold text-slate-900 max-w-sm leading-tight">${p.objeto}</div>
+            <div class="text-[10px] font-mono text-slate-400 mt-1">UASG: ${p.uasg} • Proc: ${p.processo}</div>
+          </td>
+          <td class="py-3 px-4 text-slate-600 font-medium">${p.comprador}</td>
+          <td class="py-3 px-4">
+            <span class="px-2 py-0.5 text-[10px] font-mono font-semibold bg-slate-100 text-slate-700 rounded border border-slate-200">${p.uf}</span>
+          </td>
+          <td class="py-3 px-4 text-slate-600">${p.modalidade}</td>
+          <td class="py-3 px-4 font-mono font-semibold text-slate-900">
+            ${formatCurrency(p.valor)}
+          </td>
+          <td class="py-3 px-4">
+            <span class="inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full ${
+              p.situacao === 'Publicada' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+            }">
+              ${p.situacao}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-right">
+            <button onclick="openProcurementDetail('${p.id}')" class="px-2.5 py-1 text-xs font-medium text-slate-900 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg shadow-xs transition">
+              Ver Detalhes
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Render Products Grid Cards
+    function renderProductsCatalog() {
+      const grid = document.getElementById('productsCatalogGrid');
+      if (!grid) return;
+
+      grid.innerHTML = state.products.map(prod => `
+        <div onclick="selectProduct('${prod.id}')" class="border ${prod.id === 'prod-1' ? 'border-slate-900 bg-slate-50/50' : 'border-slate-200 bg-white'} rounded-xl p-4 cursor-pointer hover:border-slate-400 transition">
+          <div class="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+            <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">CATMAT ${prod.catmat}</span>
+            <span>${prod.tipo}</span>
+          </div>
+          <h3 class="font-bold text-xs text-slate-900 line-clamp-2">${prod.nome}</h3>
+          <div class="mt-3 pt-3 border-t border-slate-100 flex items-baseline justify-between">
+            <span class="text-[10px] text-slate-500">Mediana Oficial:</span>
+            <span class="text-sm font-bold font-mono text-slate-950">${formatCurrency(prod.mediana)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Render Suppliers Grid
+    function renderSuppliers(items = state.suppliers) {
+      const grid = document.getElementById('suppliersGrid');
+      if (!grid) return;
+
+      grid.innerHTML = items.map(s => {
+        const isFav = state.favorites.some(f => f.code.includes(s.cnpj));
+        return `
+          <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-3 hover:border-slate-300 transition">
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900">${s.nome}</h3>
+                <div class="text-xs font-mono text-slate-400 mt-0.5">CNPJ: ${s.cnpj}</div>
+              </div>
+              <button onclick="toggleFavoriteSupplier('${s.id}')" class="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition" title="Favoritar fornecedor">
+                <span class="iconify ${isFav ? 'text-amber-500' : 'text-slate-400'}" data-icon="${isFav ? 'lucide:star' : 'lucide:star'}"></span>
+              </button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100">
+              <div>
+                <span class="text-[11px] text-slate-500">Resultados observados:</span>
+                <div class="font-bold font-mono text-slate-900">${s.resultados} itens homologados</div>
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-500">Valor Adjudicado Observado:</span>
+                <div class="font-bold font-mono text-slate-900">${s.valorTotal}</div>
+              </div>
+            </div>
+
+            <div class="text-[11px] text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-200/60">
+              <strong>Principal Fornecimento:</strong> ${s.principalItem} em ${s.compradores} órgãos compradores distintos.
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Contracts
+    function renderContracts() {
+      const tbody = document.getElementById('contractsTableBody');
+      if (!tbody) return;
+
+      tbody.innerHTML = state.contracts.map(c => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-3 px-4 font-semibold text-slate-900 font-mono">${c.numero}</td>
+          <td class="py-3 px-4 text-slate-700">${c.orgao}</td>
+          <td class="py-3 px-4 text-slate-600 font-medium">${c.fornecedor}</td>
+          <td class="py-3 px-4 font-mono font-medium text-slate-900">${c.fimVigencia}</td>
+          <td class="py-3 px-4 font-mono font-semibold text-slate-900">${c.valor}</td>
+          <td class="py-3 px-4">
+            <span class="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full ${
+              c.statusColor === 'red' ? 'bg-red-50 text-red-700 border border-red-200' :
+              c.statusColor === 'amber' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+              'bg-slate-100 text-slate-700 border border-slate-200'
+            }">
+              ${c.statusText}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Render Radar Feed
+    function renderRadar(filter = 'all') {
+      const container = document.getElementById('radarEventFeed');
+      if (!container) return;
+
+      let filtered = state.radarEvents;
+      if (filter === 'unread') filtered = state.radarEvents.filter(e => !e.seen);
+      else if (filter !== 'all') filtered = state.radarEvents.filter(e => e.type === filter);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center text-slate-400 border border-slate-200 rounded-xl bg-slate-50 text-xs">
+            Nenhum evento no Radar com o filtro selecionado.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(ev => `
+        <div class="p-4 border ${ev.seen ? 'border-slate-200 bg-white' : 'border-slate-300 bg-slate-50/50 shadow-xs'} rounded-xl transition flex items-start justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <div class="mt-1">
+              ${!ev.seen ? '<span class="w-2 h-2 rounded-full bg-emerald-600 block"></span>' : '<span class="w-2 h-2 rounded-full border border-slate-300 block"></span>'}
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-900">${ev.title}</span>
+                <span class="text-[10px] font-mono text-slate-400">• ${ev.time}</span>
+              </div>
+              <div class="text-xs text-slate-700 mt-0.5">${ev.subtitle}</div>
+              <div class="text-[11px] text-slate-500 font-mono mt-1">${ev.detail}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            ${!ev.seen ? `<button onclick="markEventSeen('${ev.id}')" class="px-2.5 py-1 text-[11px] font-medium bg-white border border-slate-200 hover:bg-slate-50 rounded-md text-slate-700 transition">Marcar visto</button>` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      // Update badge count
+      const unreadCount = state.radarEvents.filter(e => !e.seen).length;
+      document.getElementById('radarUnreadBadge').textContent = `${unreadCount} não vistos`;
+      document.getElementById('sidebarRadarCount').textContent = `${unreadCount} novos`;
+      const headerBadge = document.getElementById('headerRadarBadge');
+      if (unreadCount === 0) {
+        headerBadge.classList.add('hidden');
+      } else {
+        headerBadge.classList.remove('hidden');
+      }
+    }
+
+    // Render Favoritos
+    function renderFavorites(filter = 'all') {
+      const container = document.getElementById('favoritesList');
+      if (!container) return;
+
+      let list = state.favorites;
+      if (filter !== 'all') list = state.favorites.filter(f => f.type === filter);
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs border border-slate-200 rounded-xl">Nenhum favorito encontrado nesta categoria.</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(f => `
+        <div class="p-4 border border-slate-200 rounded-xl bg-white flex items-center justify-between hover:border-slate-300 transition">
+          <div class="flex items-center gap-3">
+            <span class="iconify text-amber-500 text-lg" data-icon="lucide:star"></span>
+            <div>
+              <div class="text-xs font-bold text-slate-900">${f.title}</div>
+              <div class="text-[11px] text-slate-500 font-mono">${f.type.toUpperCase()} • ${f.code}</div>
+            </div>
+          </div>
+          <button onclick="removeFavorite('${f.id}')" class="text-xs text-slate-400 hover:text-red-600 p-1 transition" title="Remover favorito">
+            <span class="iconify text-base" data-icon="lucide:trash-2"></span>
+          </button>
+        </div>
+      `).join('');
+
+      document.getElementById('favsNavCount').textContent = state.favorites.length;
+    }
+
+    // Render Interesses
+    function renderInterests() {
+      const grid = document.getElementById('interestsGrid');
+      if (!grid) return;
+
+      grid.innerHTML = state.interests.map(item => `
+        <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-3">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700 rounded border border-slate-200">Regra Ativa</span>
+              <h3 class="text-sm font-bold text-slate-900 mt-1">${item.name}</h3>
+            </div>
+            <button onclick="deleteInterest('${item.id}')" class="text-slate-400 hover:text-red-600 transition p-1">
+              <span class="iconify text-base" data-icon="lucide:trash-2"></span>
+            </button>
+          </div>
+
+          <div class="space-y-1 text-xs text-slate-600">
+            <div><strong>Produto:</strong> ${item.product}</div>
+            <div><strong>UF:</strong> ${item.uf === 'Todos' ? 'Nacional (Todas as UFs)' : item.uf}</div>
+            <div><strong>Comprador:</strong> ${item.buyer}</div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span class="text-emerald-700 font-medium flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${item.newMatches} contratações novas
+            </span>
+            <button onclick="filterProcurementsByInterest('${item.product}', '${item.uf}')" class="text-slate-900 hover:underline font-medium">Ver resultados</button>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('interestsNavCount').textContent = state.interests.length;
+    }
+
+    // Filter procurements table
+    function filterProcurements() {
+      const search = document.getElementById('procurementsSearch').value.toLowerCase();
+      const uf = document.getElementById('procurementsUf').value;
+      const mod = document.getElementById('procurementsModalidade').value;
+      const sit = document.getElementById('procurementsSituacao').value;
+
+      const filtered = state.procurements.filter(p => {
+        const matchesSearch = !search || p.objeto.toLowerCase().includes(search) || p.uasg.includes(search) || p.comprador.toLowerCase().includes(search);
+        const matchesUf = !uf || p.uf === uf;
+        const matchesMod = !mod || p.modalidade === mod;
+        const matchesSit = !sit || p.situacao === sit;
+        return matchesSearch && matchesUf && matchesMod && matchesSit;
+      });
+
+      renderProcurements(filtered);
+    }
+
+    function resetProcurementFilters() {
+      document.getElementById('procurementsSearch').value = '';
+      document.getElementById('procurementsUf').value = '';
+      document.getElementById('procurementsModalidade').value = '';
+      document.getElementById('procurementsSituacao').value = '';
+      filterProcurements();
+    }
+
+    // Filter suppliers
+    function filterSuppliers() {
+      const q = document.getElementById('supplierSearchInput').value.toLowerCase();
+      const filtered = state.suppliers.filter(s => s.nome.toLowerCase().includes(q) || s.cnpj.includes(q));
+      renderSuppliers(filtered);
+    }
+
+    // Radar Filters
+    function filterRadar(type) {
+      document.querySelectorAll('.radar-tab').forEach(b => {
+        b.className = 'radar-tab pb-2.5 px-1 font-medium text-slate-500 hover:text-slate-900';
+      });
+      event.target.className = 'radar-tab pb-2.5 px-1 font-medium text-slate-900 border-b-2 border-slate-900';
+      renderRadar(type);
+    }
+
+    function markEventSeen(id) {
+      const ev = state.radarEvents.find(e => e.id === id);
+      if (ev) {
+        ev.seen = true;
+        renderRadar();
+      }
+    }
+
+    function markAllRadarRead() {
+      state.radarEvents.forEach(e => e.seen = true);
+      renderRadar();
+      showToast('Todos os eventos do Radar foram marcados como vistos.');
+    }
+
+    // Favorite Actions
+    function toggleFavoriteSupplier(id) {
+      const s = state.suppliers.find(item => item.id === id);
+      if (!s) return;
+      const existingIndex = state.favorites.findIndex(f => f.code.includes(s.cnpj));
+      if (existingIndex >= 0) {
+        state.favorites.splice(existingIndex, 1);
+        showToast(`Removido dos favoritos: ${s.nome}`);
+      } else {
+        state.favorites.push({
+          id: 'fav-' + Date.now(),
+          type: 'fornecedor',
+          title: s.nome,
+          code: `CNPJ ${s.cnpj}`,
+          date: 'Hoje'
+        });
+        showToast(`Adicionado aos favoritos: ${s.nome}`);
+      }
+      renderSuppliers();
+      renderFavorites();
+    }
+
+    function removeFavorite(id) {
+      state.favorites = state.favorites.filter(f => f.id !== id);
+      renderFavorites();
+      renderSuppliers();
+      showToast('Favorito removido.');
+    }
+
+    function filterFavorites(type) {
+      document.querySelectorAll('.fav-tab').forEach(b => {
+        b.className = 'fav-tab px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg font-medium';
+      });
+      event.target.className = 'fav-tab px-3 py-1.5 bg-slate-900 text-white rounded-lg font-medium';
+      renderFavorites(type);
+    }
+
+    // Interest Modal and Creation
+    function openModalCreateInterest() {
+      document.getElementById('modalCreateInterest').classList.remove('hidden');
+    }
+    function closeModalCreateInterest() {
+      document.getElementById('modalCreateInterest').classList.add('hidden');
+    }
+    function handleSaveInterest(e) {
+      e.preventDefault();
+      const name = document.getElementById('interestInputName').value;
+      const product = document.getElementById('interestInputProduct').value;
+      const uf = document.getElementById('interestInputUf').value;
+      const buyer = document.getElementById('interestInputBuyer').value;
+
+      const newInt = {
+        id: 'int-' + Date.now(),
+        name,
+        product,
+        uf,
+        buyer,
+        newMatches: 1
+      };
+
+      state.interests.unshift(newInt);
+
+      // Trigger a corresponding radar alert
+      state.radarEvents.unshift({
+        id: 'rad-' + Date.now(),
+        type: 'contratacao',
+        title: `Novo alerta de interesse ativado`,
+        subtitle: `Regra criada para "${name}"`,
+        detail: `Monitorando compras federais e estaduais no Compras.gov`,
+        time: 'Agora',
+        isNew: true,
+        seen: false
+      });
+
+      renderInterests();
+      renderDashboard();
+      renderRadar();
+      closeModalCreateInterest();
+      showToast(`Regra "${name}" criada com sucesso!`);
+    }
+
+    function deleteInterest(id) {
+      state.interests = state.interests.filter(i => i.id !== id);
+      renderInterests();
+      renderDashboard();
+      showToast('Interesse removido.');
+    }
+
+    function filterProcurementsByInterest(productName, uf) {
+      navigate('contratacoes');
+      const searchBox = document.getElementById('procurementsSearch');
+      if (searchBox) searchBox.value = productName.split(' ')[0];
+      if (uf && uf !== 'Todos') {
+        const ufBox = document.getElementById('procurementsUf');
+        if (ufBox) ufBox.value = uf;
+      }
+      filterProcurements();
+    }
+
+    // Procurement Details Modal
+    function openProcurementDetail(id) {
+      const p = state.procurements.find(item => item.id === id);
+      if (!p) return;
+
+      document.getElementById('detailProcurementTitle').textContent = p.objeto;
+      document.getElementById('detailProcurementOrg').textContent = `Órgão: ${p.comprador} (${p.uf})`;
+      document.getElementById('detailProcurementUasg').textContent = `UASG: ${p.uasg}`;
+      document.getElementById('detailProcesso').textContent = p.processo;
+      document.getElementById('detailModalidade').textContent = p.modalidade;
+      document.getElementById('detailValor').textContent = formatCurrency(p.valor);
+      
+      const badge = document.getElementById('detailBadgeStatus');
+      badge.textContent = p.situacao;
+      badge.className = p.situacao === 'Publicada' ? 'px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-800 rounded' : 'px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-800 rounded';
+
+      document.getElementById('modalProcurementDetail').classList.remove('hidden');
+    }
+    function closeModalProcurementDetail() {
+      document.getElementById('modalProcurementDetail').classList.add('hidden');
+    }
+
+    // Product Selection & Price Analytics
+    function selectProduct(id) {
+      const prod = state.products.find(p => p.id === id);
+      if (!prod) return;
+
+      document.getElementById('activeProductName').textContent = prod.nome;
+      document.getElementById('statMediana').textContent = formatCurrency(prod.mediana);
+      document.getElementById('statMedia').textContent = formatCurrency(prod.mediana * 1.02);
+      document.getElementById('statMinimo').textContent = formatCurrency(prod.min);
+      document.getElementById('statMaximo').textContent = formatCurrency(prod.max);
+      document.getElementById('statObs').textContent = `${prod.obs} itens`;
+
+      renderProductsCatalog();
+    }
+
+    function toggleActiveProductFavorite() {
+      const activeName = document.getElementById('activeProductName').textContent;
+      const existing = state.favorites.find(f => f.title === activeName);
+      if (existing) {
+        state.favorites = state.favorites.filter(f => f.title !== activeName);
+        showToast('Produto desfavoritado.');
+      } else {
+        state.favorites.push({
+          id: 'fav-' + Date.now(),
+          type: 'produto',
+          title: activeName,
+          code: 'CATMAT 482910',
+          date: 'Hoje'
+        });
+        showToast('Produto adicionado aos favoritos!');
+      }
+      renderFavorites();
+    }
+
+    function createInterestForCurrentProduct() {
+      const activeName = document.getElementById('activeProductName').textContent;
+      document.getElementById('interestInputName').value = activeName.split(' ')[0] + ' Geral';
+      openModalCreateInterest();
+    }
+
+    // Direct Pre-set query buttons on Dashboard
+    function presetQuery(type) {
+      if (type === 'notebooks_rj') {
+        navigate('contratacoes');
+        document.getElementById('procurementsSearch').value = 'notebook';
+        document.getElementById('procurementsUf').value = 'RJ';
+        filterProcurements();
+      } else if (type === 'precos_monitores') {
+        navigate('produtos');
+        selectProduct('prod-2');
+      } else if (type === 'contratos_vencendo') {
+        navigate('contratos');
+      }
+    }
+
+    // Sync status and triggers
+    function openSyncStatusModal() {
+      document.getElementById('modalSyncStatus').classList.remove('hidden');
+    }
+    function closeSyncStatusModal() {
+      document.getElementById('modalSyncStatus').classList.add('hidden');
+    }
+    function triggerQuickSync() {
+      showToast('Sincronização iniciada com API Compras.gov.br...');
+      setTimeout(() => {
+        showToast('Sync concluído: 2.381 registros normalizados no PostgreSQL.');
+      }, 1200);
+    }
+
+    // Export mock data
+    function exportData(format, entity) {
+      showToast(`Exportação de ${entity}.${format} iniciada com os filtros ativos.`);
+    }
+
+    // Toast utility
+    function showToast(message) {
+      const toast = document.getElementById('toastNotification');
+      const msgEl = document.getElementById('toastMessage');
+      msgEl.textContent = message;
+      toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-12');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-12');
+      }, 3000);
+    }
+
+    // Currency Formatter
+    function formatCurrency(val) {
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+    }
+
+    // Keyboard Shortcuts (Command Palette / Ctrl+K / /)
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('globalSearchInput');
+        searchInput.focus();
+        searchInput.select();
+      } else if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        document.getElementById('globalSearchInput').focus();
+      } else if (e.key === 'Escape') {
+        closeModalCreateInterest();
+        closeModalProcurementDetail();
+        closeSyncStatusModal();
+      }
+    });
+
+    // Global Search Auto-dispatcher
+    document.getElementById('globalSearchInput').addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') {
+        const val = e.target.value.toLowerCase().trim();
+        if (!val) return;
+        navigate('contratacoes');
+        document.getElementById('procurementsSearch').value = val;
+        filterProcurements();
+        showToast(`Buscando por "${val}" em contratações...`);
+      }
+    });
+
+    // Initialize App
+    window.addEventListener('DOMContentLoaded', () => {
+      renderDashboard();
+      renderProcurements();
+      renderProductsCatalog();
+      renderSuppliers();
+      renderContracts();
+      renderRadar();
+      renderFavorites();
+      renderInterests();
+    });
+  </script>
+</body>
+</html>
