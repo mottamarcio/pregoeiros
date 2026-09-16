@@ -141,3 +141,20 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# SvelteKit build/deploy output
+/build
+.output
+.vercel
+.netlify
+.wrangler
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+!.env.test
+
+# misterspec local cache
+.misterspec/cache/

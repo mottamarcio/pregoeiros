@@ -1,6 +1,7 @@
 ---
 type: constitution
 status: active
+schema_version: 1
 ---
 
 # Pregoeiros — Constitution
