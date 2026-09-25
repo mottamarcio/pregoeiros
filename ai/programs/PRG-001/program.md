@@ -85,7 +85,7 @@ capability below is decomposed into Features by `/mister-features`.
   - TDD/BDD and SOLID/DRY/KISS/YAGNI.
 - Approved decisions D-01…D-41 (`ai/raw/06-DECISOES.md`) prevail over the original specs and the PoC.
 - **No inference under doubt:** every open question below, and any new ambiguity found during decomposition, must be put to the project owner as alternatives with the best one marked "recomendada" before being decided.
-- The stack is fixed: Svelte 5, SvelteKit 2 with adapter-node, TypeScript strict, Tailwind v4, Drizzle, PostgreSQL 16, Zod, Vitest, Playwright, and Node 22 LTS.
+- The stack is fixed: Svelte 5, SvelteKit 2 with adapter-node, TypeScript strict, Tailwind v4, Drizzle, PostgreSQL 16, Zod, Vitest, Playwright, and Node 24 LTS (D-42, `ai/raw/07-DECISOES.md`).
 - UI copy in pt-BR; code in English.
 - Collection runs 03:15 and 15:15 America/Sao_Paulo, with a single scheduler instance.
 

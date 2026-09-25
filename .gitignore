@@ -142,5 +142,19 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 
-# misterspec CLI binary (installed locally, platform-specific)
+# SvelteKit build output
+/build
+
+# Playwright
+test-results/
+playwright-report/
+
+# check:privacy safety net — the script cleans these up itself, but an
+# interrupted run should not leave the working tree dirty
+/src/routes/__privacy_check__/
+/src/lib/server/__privacy_probe__.ts
+
+# misterspec CLI binary (installed locally, platform-specific) and its
+# local, regenerable cache
 /misterspec
+/.misterspec/cache/

@@ -1,0 +1,41 @@
+import { defineConfig } from 'vitest/config';
+import adapter from '@sveltejs/adapter-node';
+import { sveltekit } from '@sveltejs/kit/vite';
+
+export default defineConfig({
+	plugins: [
+		sveltekit({
+			compilerOptions: {
+				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
+				runes: ({ filename }) =>
+					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
+			},
+			adapter: adapter()
+		})
+	],
+	test: {
+		expect: { requireAssertions: true },
+		projects: [
+			{
+				extends: './vite.config.ts',
+				test: {
+					name: 'unit',
+					environment: 'node',
+					include: ['tests/unit/**/*.test.ts', 'src/**/*.test.ts']
+				}
+			},
+			{
+				extends: './vite.config.ts',
+				test: {
+					name: 'integration',
+					environment: 'node',
+					include: ['tests/integration/**/*.test.ts'],
+					// Integration tests share external resources (e.g. a test
+					// database, once SPEC-002 adds one) and must not run
+					// concurrently with each other.
+					fileParallelism: false
+				}
+			}
+		]
+	}
+});

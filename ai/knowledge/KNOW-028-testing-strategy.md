@@ -9,6 +9,8 @@ sources:
     fingerprint: sha256:6e7674dbbc7cc493eb3ab19f7df694f82a5ff42b7c6d7c5b3c88a453d09250f7
   - path: ai/raw/06-DECISOES.md
     fingerprint: sha256:c41ad04667805c05ff559cb82fc6fe2a5cbd64a3c1af1ae120dcfc17ff28792d
+  - path: ai/raw/07-DECISOES.md
+    fingerprint: sha256:1ec28917fc00f20b87000eafdd6aa440339832b11756a8d3755ef0e1b823f1e8
 ---
 
 # KNOW-028 — Testing Strategy (TDD, Integration, BDD)
@@ -42,6 +44,7 @@ end-to-end journeys mirroring the PoC.
 - Test folders: `tests/unit`, `tests/integration`, `tests/e2e`.
 - CI runs `svelte-check` (module privacy).
 - F1 includes a contract test checking upstream parameter names against the Compras.gov.br OpenAPI (D-30).
+- **Decision D-43 — E2E browsers:** Playwright E2E runs on **Chromium only**, locally and in CI.
 
 ## Constraints
 
@@ -63,6 +66,7 @@ end-to-end journeys mirroring the PoC.
 - TDD/BDD principles, LSP fakes, tests folder: `ai/raw/02-ARCHITECTURAL_SPECS.md` §2.1, §4.
 - `svelte-check` in CI: `ai/raw/03-TECHNICAL_SPECS.md` §3.3.
 - Decisions D-03, D-26d, D-30: `ai/raw/06-DECISOES.md`.
+- Decision D-43: `ai/raw/07-DECISOES.md`.
 
 ## Related Topics
 

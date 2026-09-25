@@ -11,6 +11,8 @@ sources:
     fingerprint: sha256:721ba22842c1abc71b7203e4985d087b77d43e1682d047a20a30572dfd9803d0
   - path: ai/raw/06-DECISOES.md
     fingerprint: sha256:c41ad04667805c05ff559cb82fc6fe2a5cbd64a3c1af1ae120dcfc17ff28792d
+  - path: ai/raw/07-DECISOES.md
+    fingerprint: sha256:1ec28917fc00f20b87000eafdd6aa440339832b11756a8d3755ef0e1b823f1e8
 ---
 
 # KNOW-016 — Technology Stack
@@ -18,7 +20,7 @@ sources:
 ## Summary
 
 Svelte 5 + SvelteKit 2 + TypeScript strict + Tailwind + Iconify on the front;
-Node 22 LTS with adapter-node on the server; PostgreSQL 16 in Docker for
+Node 24 LTS (D-42) with adapter-node on the server; PostgreSQL 16 in Docker for
 persistence; Zod for validation; Vitest and Playwright for tests.
 
 ## Known Facts
@@ -38,7 +40,7 @@ persistence; Zod for validation; Vitest and Playwright for tests.
 | Unit tests | Vitest | Aligned with Vite |
 | Component tests | Vitest + Testing Library (Svelte) | — |
 | BDD / E2E | Playwright with light Gherkin (`describe` in pt-BR) or `playwright-bdd` | PoC journeys |
-| Runtime | Node 22 LTS + `@sveltejs/adapter-node` | Cron in the same process initially |
+| Runtime | **Node 24 LTS** (D-42; the Technical Spec says Node 22) + `@sveltejs/adapter-node` | Cron in the same process initially |
 | Containers | Docker Compose | `web` + `db` (names per D-27) |
 
 - Scheduling library: `node-cron` (option A), inside the Node process.
@@ -52,6 +54,7 @@ persistence; Zod for validation; Vitest and Playwright for tests.
   - D-26d: E2E with **plain Playwright**, test titles in pt-BR Dado/Quando/Então (no `playwright-bdd`).
 - Authentication: minimal session implementation (D-25, details in [[KNOW-023]]).
 - `users.email` is `text` with a `lower(email)` unique index, so no `citext` extension is needed (D-24).
+- **Decision D-42 — Node.js version:** Node 24 LTS in development, CI and the production image (`engines.node` `>=24 <25`, `.nvmrc` `24`). Rationale: Node 22 reaches end of life on 2027-04-30, shortly after the planned v1 delivery.
 
 ## Constraints
 
@@ -73,6 +76,7 @@ persistence; Zod for validation; Vitest and Playwright for tests.
 - Architecture stack header and principles, YAGNI exclusions: `ai/raw/02-ARCHITECTURAL_SPECS.md` header, §2.1, §9.
 - Extensions and `citext`: `ai/raw/05-DATA_MODEL_SPECS.md` header, §4.
 - Decisions D-24, D-25, D-26: `ai/raw/06-DECISOES.md`.
+- Decision D-42: `ai/raw/07-DECISOES.md`.
 
 ## Related Topics
 
