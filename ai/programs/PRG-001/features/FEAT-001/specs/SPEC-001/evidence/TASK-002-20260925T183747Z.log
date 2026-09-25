@@ -1,0 +1,16 @@
+
+> pregoeiros@0.0.1 prepare
+> svelte-kit sync || echo ''
+
+
+added 218 packages, and audited 219 packages in 4s
+
+64 packages are looking for funding
+  run `npm fund` for details
+
+3 low severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.

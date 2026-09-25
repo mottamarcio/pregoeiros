@@ -1,0 +1,13 @@
+
+> pregoeiros@0.0.1 test
+> vitest run
+
+
+ RUN  v4.1.11 /home/marciovcm/workspace/javascript/pregoeiros
+
+
+ Test Files  2 passed (2)
+      Tests  2 passed (2)
+   Start at  15:43:45
+   Duration  460ms (transform 39ms, setup 0ms, import 70ms, tests 11ms, environment 1ms)
+

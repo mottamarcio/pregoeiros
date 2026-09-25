@@ -1,0 +1,11 @@
+
+> pregoeiros@0.0.1 test:e2e
+> playwright test
+
+[WebServer] Generated an empty chunk: "chunks/env.js".
+
+Running 1 test using 1 worker
+
+  ✓  1 [chromium] › tests/e2e/smoke.test.ts:6:1 › Dado que o servidor da aplicação está no ar, quando o analista abre a página inicial, então a página carrega com sucesso (176ms)
+
+  1 passed (8.0s)

@@ -1,0 +1,7 @@
+
+> pregoeiros@0.0.1 check:privacy
+> node scripts/verify-server-privacy.mjs
+
+ok: static import in a .svelte component — build failed as expected, mentioning $lib/server.
+ok: dynamic import in a universal +page.ts — build failed as expected, mentioning $lib/server.
+check:privacy: PASSED — $lib/server is not reachable from client-side code.

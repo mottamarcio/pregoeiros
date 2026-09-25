@@ -193,7 +193,7 @@ Evidence-Log: ai/programs/PRG-001/features/FEAT-001/specs/SPEC-001/evidence/TASK
 
 ## TASK-009 — Add the GitHub Actions CI workflow
 
-- [ ] Done
+- [x] Done
 
 Serves: SPEC-001:R8
 Depends on: TASK-002, TASK-003, TASK-004, TASK-005, TASK-006, TASK-007, TASK-008
@@ -217,11 +217,19 @@ Constraint (quoted): "A workflow under `.github/workflows/` triggers on push and
   10. `npm run check:privacy`.
 - Set `permissions: contents: read` and a `concurrency` group that cancels superseded runs. No repository secrets.
 
-The `'on':` key is written quoted, since unquoted `on:` parses as the boolean `true` under YAML 1.1 (PyYAML confirmed this both ways: unquoted top-level keys were `['name', True, ...]`; quoted, `['name', 'on', ...]`) — GitHub's own workflow parser special-cases the unquoted form correctly, but the quoted form removes the ambiguity outright. `actionlint` was not available in this environment, so verification fell back to a PyYAML parse (confirms syntactic validity and lists all 12 step names) plus a step-by-step local run of the exact CI sequence — `npm ci` (from a clean `node_modules` removal), `lint`, `check`, `test:unit`, `test:integration`, `test:e2e` (Chromium already installed from TASK-006), `build`, `check:privacy` — every step exited 0 in that order. A `DATABASE_URL` for the `postgres` service is exported at job level so SPEC-002's integration tests need no workflow change. Verifying an actual green/red run on GitHub (the "push to `dev`" and "throwaway branch with a TS error" checks) requires the project owner's authorization to push, which had not been given as of this Task; that part of Verify is deferred and named in this run's completion report.
+The `'on':` key is written quoted, since unquoted `on:` parses as the boolean `true` under YAML 1.1 (PyYAML confirmed this both ways: unquoted top-level keys were `['name', True, ...]`; quoted, `['name', 'on', ...]`) — GitHub's own workflow parser special-cases the unquoted form correctly, but the quoted form removes the ambiguity outright. `actionlint` was not available in this environment, so verification fell back to a PyYAML parse (confirms syntactic validity and lists all 12 step names) plus a step-by-step local run of the exact CI sequence — `npm ci` (from a clean `node_modules` removal), `lint`, `check`, `test:unit`, `test:integration`, `test:e2e` (Chromium already installed from TASK-006), `build`, `check:privacy` — every step exited 0 in that order. A `DATABASE_URL` for the `postgres` service is exported at job level so SPEC-002's integration tests need no workflow change. The project owner authorized pushing and verifying live: after this commit was pushed to `dev`, run https://github.com/mottamarcio/pregoeiros/actions/runs/36177050276 went green — all 9 script steps (`npm ci` implicitly via Install dependencies, lint, check, unit, integration, Chromium install, e2e, build, check:privacy) succeeded. A throwaway branch (`ci-red-check-throwaway`) added one line with a deliberate type error (`export const deliberateTypeError: number = 'this is a string, not a number';`) to `src/lib/index.ts`; opened as PR #1 into `dev` (a plain branch push wouldn't trigger this workflow, which only listens on `dev`/`main`); run https://github.com/mottamarcio/pregoeiros/actions/runs/36177244710 failed exactly at the "Type check" step, with every later step correctly skipped. The PR was closed and the throwaway branch deleted (locally and on GitHub, remote-tracking ref pruned) immediately after.
+
+Evidence-Result: pass
+Evidence-Origin: declared
+Evidence-By: mister-implement (GitHub Actions run 36177050276 green; run 36177244710 red at Type check, per project-owner-authorized push/PR)
+Evidence-CapturedAt: 2026-09-25T19:04:50Z
+Evidence-GitRevision: 37ae1ed
+Evidence-WorkingTree: dirty
+Evidence-Fingerprint: sha256:43778b7b2b94982b89025639909e763aafa90e5581b33d8ee304a45ce0816c1d
 
 ## TASK-010 — Document the development workflow in the README
 
-- [ ] Done
+- [x] Done
 
 Serves: SPEC-001:R2, SPEC-001:R7
 Depends on: TASK-009
@@ -229,3 +237,15 @@ Scope: `README.md`
 Verify: `README.md` contains a "Desenvolvimento" section listing Node 24 (`nvm use`), `npm ci`, and every script from R7 with a one-line pt-BR description; the commands listed match `package.json` (checked by reading both)
 
 Keep the existing project description; append the section in pt-BR.
+
+Added a "Desenvolvimento" section (pt-BR) with the Node 24/`.nvmrc` prerequisite, `npm ci`, and a table of every script with a one-line description — the 10 required by R7 (`dev`, `build`, `preview`, `check`, `lint`, `format`, `test`, `test:unit`, `test:integration`, `test:e2e`) plus `check:privacy` (R4) and `check:watch` (a `check` variant) for completeness; the npm lifecycle `prepare` script is intentionally omitted (not user-invoked, not part of R7). Verified programmatically that all 10 R7 script names appear in the README, plus "Node 24" and "npm ci"; `npm run lint`, `npm run check` and `npm run test:unit` (25 tests) all still pass.
+
+Evidence-Result: pass
+Evidence-Origin: automated
+Evidence-By: mister-implement
+Evidence-CapturedAt: 2026-09-25T19:06:48Z
+Evidence-Command: bash -c 'npm run lint && npm run check && npm run test:unit'
+Evidence-GitRevision: 37ae1ed
+Evidence-WorkingTree: dirty
+Evidence-Fingerprint: sha256:feaa0e839bfc45e77687cb77d3b3437832bec79a258c7c7e7668f95a30e5f8f1
+Evidence-Log: ai/programs/PRG-001/features/FEAT-001/specs/SPEC-001/evidence/TASK-010-20260925T190701Z.log

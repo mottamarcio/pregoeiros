@@ -1,0 +1,66 @@
+
+> pregoeiros@0.0.1 prepare
+> svelte-kit sync || echo ''
+
+
+up to date, audited 219 packages in 2s
+
+64 packages are looking for funding
+  run `npm fund` for details
+
+3 low severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> pregoeiros@0.0.1 build
+> vite build
+
+vite v8.3.1 building ssr environment for production...
+transforming...
+✓ 147 modules transformed.
+rendering chunks...
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 158 modules transformed.
+rendering chunks...
+computing gzip size...
+.svelte-kit/output/client/_app/version.json                        0.02 kB │ gzip:  0.04 kB
+.svelte-kit/output/client/.vite/manifest.json                      2.28 kB │ gzip:  0.47 kB
+.svelte-kit/output/client/_app/immutable/chunks/xihTtKlq.js        0.06 kB │ gzip:  0.08 kB
+.svelte-kit/output/client/_app/immutable/entry/start.Pn1lef13.js   0.07 kB │ gzip:  0.08 kB
+.svelte-kit/output/client/_app/immutable/nodes/2.Enwykudm.js       0.28 kB │ gzip:  0.23 kB
+.svelte-kit/output/client/_app/immutable/nodes/1.CtcRhj6l.js       0.57 kB │ gzip:  0.32 kB
+.svelte-kit/output/client/_app/immutable/chunks/Bjy-W4x2.js        1.36 kB │ gzip:  0.65 kB
+.svelte-kit/output/client/_app/immutable/nodes/0.Bg55vA_d.js       2.41 kB │ gzip:  0.99 kB
+.svelte-kit/output/client/_app/immutable/entry/app.yaJbBdK2.js     3.96 kB │ gzip:  1.85 kB
+.svelte-kit/output/client/_app/immutable/chunks/CO73hxC1.js       26.64 kB │ gzip: 10.30 kB
+.svelte-kit/output/client/_app/immutable/chunks/DaqWcO62.js       37.71 kB │ gzip: 14.43 kB
+
+✓ built in 244ms
+computing gzip size...
+.svelte-kit/output/server/.vite/manifest.json                  2.65 kB │ gzip:  0.48 kB
+.svelte-kit/output/server/env.js                               0.22 kB │ gzip:  0.14 kB
+.svelte-kit/output/server/chunks/env.js                        0.28 kB │ gzip:  0.17 kB
+.svelte-kit/output/server/entries/pages/_page.svelte.js        0.29 kB │ gzip:  0.22 kB
+.svelte-kit/output/server/internal.js                          0.40 kB │ gzip:  0.19 kB
+.svelte-kit/output/server/chunks/internal2.js                  0.74 kB │ gzip:  0.34 kB
+.svelte-kit/output/server/entries/pages/_layout.svelte.js      2.58 kB │ gzip:  1.05 kB
+.svelte-kit/output/server/entries/fallbacks/error.svelte.js    4.17 kB │ gzip:  1.66 kB
+.svelte-kit/output/server/chunks/shared.js                    10.57 kB │ gzip:  3.38 kB
+.svelte-kit/output/server/chunks/exports.js                   11.25 kB │ gzip:  3.63 kB
+.svelte-kit/output/server/chunks/utils.js                     31.76 kB │ gzip:  9.35 kB
+.svelte-kit/output/server/chunks/internal.js                  39.97 kB │ gzip: 11.46 kB
+.svelte-kit/output/server/remote-entry.js                     54.49 kB │ gzip: 12.02 kB
+.svelte-kit/output/server/chunks/server.js                   117.97 kB │ gzip: 30.97 kB
+.svelte-kit/output/server/index.js                           126.01 kB │ gzip: 31.92 kB
+
+✓ built in 2.79s
+
+Run npm run preview to preview your production build locally.
+
+> Using @sveltejs/adapter-node
+Generated an empty chunk: "chunks/env.js".
+  ✔ done

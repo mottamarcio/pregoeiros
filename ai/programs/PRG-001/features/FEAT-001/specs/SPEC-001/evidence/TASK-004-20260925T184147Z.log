@@ -1,0 +1,23 @@
+
+> pregoeiros@0.0.1 format
+> prettier --write .
+
+.vscode/extensions.json 27ms (unchanged)
+eslint.config.js 40ms (unchanged)
+package.json 6ms (unchanged)
+playwright.config.ts 42ms (unchanged)
+prettier.config.js 7ms (unchanged)
+README.md 33ms (unchanged)
+src/app.d.ts 8ms (unchanged)
+src/app.html 60ms (unchanged)
+src/lib/index.ts 2ms (unchanged)
+src/routes/+layout.svelte 40ms (unchanged)
+src/routes/+page.svelte 4ms (unchanged)
+tsconfig.json 5ms (unchanged)
+vite.config.ts 14ms (unchanged)
+
+> pregoeiros@0.0.1 lint
+> prettier --check . && eslint .
+
+Checking formatting...
+All matched files use Prettier code style!
