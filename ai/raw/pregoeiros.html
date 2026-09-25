@@ -1,0 +1,2433 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-50 text-slate-900">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pregoeiros — Triagem e Inteligência em Licitações Públicas</title>
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Iconify CDN -->
+  <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+
+  <!-- Tailwind Configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
+              400: '#94a3b8',
+              500: '#64748b',
+              600: '#475569',
+              700: '#334155',
+              800: '#1e293b',
+              900: '#0f172a',
+              950: '#020617',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbars and transitions */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased text-slate-900 bg-white selection:bg-slate-900 selection:text-white">
+
+  <!-- Top Global Header -->
+  <header class="h-14 border-b border-slate-200 bg-white px-4 flex items-center justify-between sticky top-0 z-30 shrink-0">
+    <div class="flex items-center gap-3">
+      <!-- Mobile menu toggle button -->
+      <button id="btnToggleMobileSidebar" class="md:hidden p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors" aria-label="Menu principal">
+        <span class="iconify text-xl" data-icon="lucide:menu"></span>
+      </button>
+
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-2.5 cursor-pointer" onclick="navigate('dashboard')">
+        <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm shadow-sm tracking-tight">
+          <span class="iconify text-lg" data-icon="lucide:layers"></span>
+        </div>
+        <div>
+          <span class="font-bold text-base tracking-tight text-slate-900">Pregoeiros</span>
+          <span class="hidden sm:inline text-xs font-medium text-slate-600 ml-1.5 py-0.5 px-2 bg-slate-100 rounded border border-slate-200">Triagem de Editais</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Central Search Bar with Grouped Command Palette Dropdown -->
+    <div class="flex-1 max-w-xl mx-4 relative hidden sm:block">
+      <div class="relative group">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-slate-900 transition-colors">
+          <span class="iconify text-base" data-icon="lucide:search"></span>
+        </span>
+        <input 
+          type="text" 
+          id="globalSearchInput" 
+          oninput="handleGlobalSearch(this.value)"
+          placeholder="Buscar editais, itens, fornecedores... (Pressione / ou ⌘K)" 
+          class="w-full pl-9 pr-14 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900 focus:bg-white transition"
+          autocomplete="off"
+        />
+        <kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-white border border-slate-200 rounded shadow-xs pointer-events-none">
+          ⌘K
+        </kbd>
+      </div>
+
+      <!-- Quick Search Grouped Dropdown -->
+      <div id="globalSearchResultsDropdown" class="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden hidden z-50">
+        <div id="globalSearchResultsList" class="max-h-96 overflow-y-auto divide-y divide-slate-100 text-xs">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="flex items-center gap-2">
+      <!-- Sync & Coverage Indicator -->
+      <div class="hidden lg:flex items-center gap-2 py-1 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" title="Fonte: Dados Abertos Compras.gov.br (Lei 14.133/21)">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-slate-500">Última Coleta: <strong class="text-slate-700 font-medium font-mono text-xs">Hoje, 03:15</strong></span>
+        <span class="text-slate-300">|</span>
+        <span class="text-slate-600 font-mono text-xs">Base Federal e Estaduais</span>
+      </div>
+
+      <!-- Quick Radar Shortcut -->
+      <button onclick="navigate('radar')" class="relative p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors" title="Fila de Alertas e Mudanças">
+        <span class="iconify text-lg" data-icon="lucide:bell"></span>
+        <span id="headerRadarBadge" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-emerald-600 rounded-full ring-2 ring-white"></span>
+      </button>
+
+      <!-- Source Integrity Status -->
+      <button onclick="openSyncStatusModal()" class="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors" title="Fontes Consultadas & Status de Atualização">
+        <span class="iconify text-lg" data-icon="lucide:database"></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex overflow-hidden">
+    <!-- Desktop Sidebar Navigation -->
+    <aside id="appSidebar" class="w-64 border-r border-slate-200 bg-slate-50 flex flex-col shrink-0 transition-transform duration-200 z-20 fixed md:static inset-y-14 left-0 -translate-x-full md:translate-x-0 h-[calc(100%-3.5rem)]">
+      <div class="flex-1 overflow-y-auto p-3 space-y-6">
+        
+        <!-- Primary section -->
+        <div class="space-y-1">
+          <button onclick="navigate('dashboard')" data-nav="dashboard" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold text-slate-900 bg-white border border-slate-200 shadow-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="iconify text-slate-900 text-base" data-icon="lucide:check-square"></span>
+              <span>Fila de Triagem</span>
+            </div>
+            <span id="sidebarPendingTriageCount" class="px-1.5 py-0.5 text-[11px] font-mono font-medium bg-amber-100 text-amber-900 rounded-full">4 pendentes</span>
+          </button>
+          
+          <button onclick="navigate('radar')" data-nav="radar" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+            <div class="flex items-center gap-2.5">
+              <span class="iconify text-slate-500 text-base" data-icon="lucide:radar"></span>
+              <span>Alertas & Radar</span>
+            </div>
+            <span id="sidebarRadarCount" class="px-1.5 py-0.5 text-[11px] font-semibold bg-emerald-100 text-emerald-800 rounded-full">12 novos</span>
+          </button>
+        </div>
+
+        <!-- Pillar: EXPLORAR -->
+        <div>
+          <div class="px-3 pb-2 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+            Oportunidades & Mercado
+          </div>
+          <div class="space-y-1">
+            <button onclick="navigate('contratacoes')" data-nav="contratacoes" class="nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <span class="iconify text-slate-500 text-base" data-icon="lucide:file-text"></span>
+              <span>Oportunidades (Editais)</span>
+            </button>
+            <button onclick="navigate('produtos')" data-nav="produtos" class="nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <span class="iconify text-slate-500 text-base" data-icon="lucide:package"></span>
+              <span>Produtos & Serviços</span>
+            </button>
+            <button onclick="navigate('fornecedores')" data-nav="fornecedores" class="nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <span class="iconify text-slate-500 text-base" data-icon="lucide:building-2"></span>
+              <span>Concorrentes & Vencedores</span>
+            </button>
+            <button onclick="navigate('contratos')" data-nav="contratos" class="nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <span class="iconify text-slate-500 text-base" data-icon="lucide:clock-9"></span>
+              <span>Contratos a Vencer</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Pillar: ACOMPANHAR -->
+        <div>
+          <div class="px-3 pb-2 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+            Acompanhamento & Decisão
+          </div>
+          <div class="space-y-1">
+            <button onclick="navigate('interesses')" data-nav="interesses" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <div class="flex items-center gap-2.5">
+                <span class="iconify text-slate-500 text-base" data-icon="lucide:bell-plus"></span>
+                <span>Alertas Salvos</span>
+              </div>
+              <span id="interestsNavCount" class="text-[11px] text-slate-400 font-mono">3</span>
+            </button>
+            <button onclick="navigate('favoritos')" data-nav="favoritos" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <div class="flex items-center gap-2.5">
+                <span class="iconify text-slate-500 text-base" data-icon="lucide:bookmark"></span>
+                <span>Em Disputa / Salvos</span>
+              </div>
+              <span id="favsNavCount" class="text-[11px] text-slate-400 font-mono">3</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Pillar: ANALISAR -->
+        <div>
+          <div class="px-3 pb-2 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+            Inteligência de Preços
+          </div>
+          <div class="space-y-1">
+            <button onclick="navigate('precos')" data-nav="precos" class="nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <span class="iconify text-slate-500 text-base" data-icon="lucide:trending-up"></span>
+              <span>Preços Praticados</span>
+            </button>
+            <button onclick="navigate('historico')" data-nav="historico" class="nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+              <span class="iconify text-slate-500 text-base" data-icon="lucide:history"></span>
+              <span>Histórico Observado</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom System Status -->
+      <div class="p-3 border-t border-slate-200 bg-white">
+        <div class="rounded-lg p-2.5 bg-slate-50 border border-slate-200 text-xs space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500 font-medium">Fontes Coletadas</span>
+            <span class="text-emerald-700 font-mono font-medium flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Operando
+            </span>
+          </div>
+          <div class="text-[11px] text-slate-500 leading-tight">
+            Compras.gov.br federal & adesões sob a Lei nº 14.133/21.
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Overlay backdrop for mobile sidebar -->
+    <div id="mobileBackdrop" class="fixed inset-0 bg-slate-900/40 z-10 hidden md:hidden" onclick="toggleMobileSidebar()"></div>
+
+    <!-- Main Content Container -->
+    <main id="mainContainer" class="flex-1 overflow-y-auto bg-white p-4 sm:p-6 lg:p-8">
+      
+      <!-- VIEW 1: DASHBOARD (FILA DE TRABALHO & TRIAGEM RÁPIDA) -->
+      <section id="view-dashboard" class="max-w-6xl mx-auto space-y-8">
+        <!-- Actionable work queue header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-2xl font-bold tracking-tight text-slate-950">Fila de Triagem Comercial</h1>
+              <span class="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-700 rounded-md border border-slate-200">Empresa Fornecedora</span>
+            </div>
+            <p class="text-sm text-slate-500 mt-1">Identifique rapidamente em quais editais vale a pena disputar antes do encerramento das propostas</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openModalCreateInterest()" class="px-3.5 py-2 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg inline-flex items-center gap-1.5 shadow-xs transition">
+              <span class="iconify text-sm" data-icon="lucide:plus"></span>
+              <span>Criar Alerta de Oportunidade</span>
+            </button>
+            <button onclick="triggerQuickSync()" class="px-3.5 py-2 text-xs font-medium bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg inline-flex items-center gap-1.5 shadow-xs transition">
+              <span class="iconify text-sm text-slate-500" data-icon="lucide:refresh-cw"></span>
+              <span>Atualizar Fontes</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Urgency & Status Counters -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-500">Pendentes de Decisão</span>
+              <span class="iconify text-amber-600 text-lg" data-icon="lucide:clock-4"></span>
+            </div>
+            <div id="statPendingTriage" class="text-2xl font-bold text-slate-900 font-mono mt-1">4 editais</div>
+            <div class="text-xs text-amber-700 mt-0.5">Exigem decisão: GO ou Descartar</div>
+          </div>
+          <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-500">Propostas até 48h</span>
+              <span class="iconify text-red-600 text-lg" data-icon="lucide:alert-circle"></span>
+            </div>
+            <div class="text-2xl font-bold text-red-700 font-mono mt-1">2 urgentes</div>
+            <div class="text-xs text-red-600 mt-0.5">Prazo limite iminente</div>
+          </div>
+          <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-500">Decisão: GO (Participando)</span>
+              <span class="iconify text-emerald-600 text-lg" data-icon="lucide:check-circle"></span>
+            </div>
+            <div id="statGoCount" class="text-2xl font-bold text-emerald-700 font-mono mt-1">1 edital</div>
+            <div class="text-xs text-slate-500 mt-0.5">Proposta em elaboração</div>
+          </div>
+          <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-500">Alertas com Novidades</span>
+              <span class="iconify text-blue-600 text-lg" data-icon="lucide:bell"></span>
+            </div>
+            <div class="text-2xl font-bold text-slate-900 font-mono mt-1">12 eventos</div>
+            <div class="text-xs text-slate-500 mt-0.5">Itens correspondentes ao nicho</div>
+          </div>
+        </div>
+
+        <!-- Priority Section: Work Queue (Triage Table) -->
+        <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 class="font-bold text-sm text-slate-900">Oportunidades em Aberto para Triagem Imediata</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Priorize por data limite de proposta, local de entrega e adequação dos itens</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="filterTriageQueue('all')" class="triage-filter-btn px-2.5 py-1 text-xs font-medium bg-slate-900 text-white rounded-md">Todas</button>
+              <button onclick="filterTriageQueue('pendente')" class="triage-filter-btn px-2.5 py-1 text-xs font-medium bg-white text-slate-600 hover:bg-slate-100 rounded-md border border-slate-200">Apenas Pendentes</button>
+              <button onclick="filterTriageQueue('go')" class="triage-filter-btn px-2.5 py-1 text-xs font-medium bg-white text-slate-600 hover:bg-slate-100 rounded-md border border-slate-200">Decididas (GO)</button>
+            </div>
+          </div>
+
+          <div class="divide-y divide-slate-100" id="dashboardTriageQueueList">
+            <!-- Dynamic triage cards injected via JS -->
+          </div>
+        </div>
+
+        <!-- Two Columns: Active Alerts & Recent Market Activity -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Seus Alertas de Oportunidades -->
+          <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="iconify text-slate-700 text-base" data-icon="lucide:bell-check"></span>
+                <h3 class="font-semibold text-sm text-slate-900">Alertas Ativos de Nicho</h3>
+              </div>
+              <button onclick="navigate('interesses')" class="text-xs text-slate-500 hover:text-slate-900 font-medium">Gerenciar</button>
+            </div>
+            
+            <div id="dashboardInterestsList" class="space-y-2">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Modificações & Retificações de Editais -->
+          <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="iconify text-amber-600 text-base" data-icon="lucide:file-warning"></span>
+                <h3 class="font-semibold text-sm text-slate-900">Retificações e Alterações Observadas</h3>
+              </div>
+              <span class="text-xs text-slate-500">Editais monitorados</span>
+            </div>
+
+            <div class="space-y-3" id="dashboardAmendmentsFeed">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Question Cards -->
+        <div class="border border-slate-200 rounded-xl p-5 bg-slate-50">
+          <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Pesquisa Direta por Cenário Comercial</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <button onclick="presetQuery('notebooks_rj')" class="text-left p-4 bg-white rounded-lg border border-slate-200 hover:border-slate-400 hover:shadow-xs transition group">
+              <span class="text-xs font-bold text-slate-900 block group-hover:text-slate-950">"Quais órgãos estão comprando notebooks no RJ?"</span>
+              <span class="text-xs text-slate-500 mt-1 block">Filtro: CATMAT 482910 + UF: RJ (com prazos abertos)</span>
+            </button>
+            <button onclick="presetQuery('precos_monitores')" class="text-left p-4 bg-white rounded-lg border border-slate-200 hover:border-slate-400 hover:shadow-xs transition group">
+              <span class="text-xs font-bold text-slate-900 block group-hover:text-slate-950">"Quanto o governo vem pagando por monitores 27''?"</span>
+              <span class="text-xs text-slate-500 mt-1 block">Mediana calculada na base consultada com valores de lotes</span>
+            </button>
+            <button onclick="presetQuery('contratos_vencendo')" class="text-left p-4 bg-white rounded-lg border border-slate-200 hover:border-slate-400 hover:shadow-xs transition group">
+              <span class="text-xs font-bold text-slate-900 block group-hover:text-slate-950">"Quais contratos de TI estão próximos do fim?"</span>
+              <span class="text-xs text-slate-500 mt-1 block">Contratos a vencer nos próximos 30 a 90 dias</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: OPORTUNIDADES (EDITAIS & PREGÕES) -->
+      <section id="view-contratacoes" class="max-w-6xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-950">Oportunidades em Disputa</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Editais publicados, dispensas e pregões sob a Lei Federal nº 14.133/2021</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="exportData('csv', 'oportunidades')" class="px-3 py-1.5 text-xs font-medium bg-white text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 inline-flex items-center gap-1.5 shadow-xs">
+              <span class="iconify" data-icon="lucide:download"></span> Exportar Planilha CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Advanced Filter bar with Exclusion Support -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3.5">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Buscar por Objeto, Itens ou Palavras-chave</label>
+              <div class="relative">
+                <input 
+                  type="text" 
+                  id="procurementsSearch" 
+                  oninput="filterProcurements()" 
+                  placeholder="Ex: notebook, monitor -serviço (use hífen para excluir)" 
+                  class="w-full text-xs px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900 pr-8"
+                >
+                <span class="absolute right-2.5 top-2.5 text-slate-400 text-xs" title="Suporta exclusão com '-' (ex: -manutencao)">
+                  <span class="iconify" data-icon="lucide:help-circle"></span>
+                </span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">UF de Entrega</label>
+              <select id="procurementsUf" onchange="filterProcurements()" class="w-full text-xs px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900">
+                <option value="">Todas as UFs</option>
+                <option value="RJ">RJ - Rio de Janeiro</option>
+                <option value="SP">SP - São Paulo</option>
+                <option value="DF">DF - Distrito Federal</option>
+                <option value="MG">MG - Minas Gerais</option>
+                <option value="RS">RS - Rio Grande do Sul</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Decisão de Triagem</label>
+              <select id="procurementsTriageFilter" onchange="filterProcurements()" class="w-full text-xs px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900">
+                <option value="">Todas as Decisões</option>
+                <option value="pendente">Pendente de Triagem</option>
+                <option value="go">GO (Vamos Disputar)</option>
+                <option value="analisando">Em Análise</option>
+                <option value="nogo">NO-GO (Descartado)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Segmento / Família</label>
+              <select id="procurementsSegment" onchange="filterProcurements()" class="w-full text-xs px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900">
+                <option value="">Todos os Segmentos</option>
+                <option value="TI">Tecnologia da Informação & Computadores</option>
+                <option value="Saúde">Material Médico & Hospitalar</option>
+                <option value="Climatização">Climatização & Refrigeração</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Modalidade</label>
+              <select id="procurementsModalidade" onchange="filterProcurements()" class="w-full text-xs px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900">
+                <option value="">Todas</option>
+                <option value="Pregão Eletrônico">Pregão Eletrônico</option>
+                <option value="Dispensa de Licitação">Dispensa de Licitação</option>
+                <option value="Concorrência">Concorrência</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Situação do Processo</label>
+              <select id="procurementsSituacao" onchange="filterProcurements()" class="w-full text-xs px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900">
+                <option value="">Todas</option>
+                <option value="Recebendo Propostas">Recebendo Propostas (Aberta)</option>
+                <option value="Resultado Homologado">Resultado Homologado</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-2.5 border-t border-slate-200 text-xs">
+            <span class="text-slate-600 font-medium" id="procurementsCount">Exibindo 6 oportunidades</span>
+            <button onclick="resetProcurementFilters()" class="text-slate-600 hover:text-slate-900 font-medium text-xs hover:underline">Limpar filtros de busca</button>
+          </div>
+        </div>
+
+        <!-- Table of Opportunities -->
+        <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[11px] tracking-wider">
+                <tr>
+                  <th class="py-3 px-4">Prazo de Proposta</th>
+                  <th class="py-3 px-4">Objeto e Itens do Edital</th>
+                  <th class="py-3 px-4">Órgão Comprador</th>
+                  <th class="py-3 px-4">UF</th>
+                  <th class="py-3 px-4">Valor Estimado</th>
+                  <th class="py-3 px-4">Triagem</th>
+                  <th class="py-3 px-4 text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="procurementsTableBody" class="divide-y divide-slate-100">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: PRODUTOS & PREÇOS PRATICADOS (DINÂMICO) -->
+      <section id="view-produtos" class="max-w-6xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-950">Catálogo de Produtos & Análise de Preços Praticados</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Dispersão de valores homologados em compras públicas para balizar sua proposta comercial</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-600 rounded-md font-mono">Fonte: Dados Compras.gov.br</span>
+          </div>
+        </div>
+
+        <!-- Product Selector Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="productsCatalogGrid">
+          <!-- Injected via JS -->
+        </div>
+
+        <!-- Interactive Price Analysis Box for selected product -->
+        <div id="productDetailAnalyticsBox" class="border border-slate-200 rounded-xl p-6 bg-white space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span id="activeProductCatmat" class="px-2 py-0.5 bg-slate-100 text-slate-700 text-xs font-mono rounded border border-slate-200">CATMAT 482910</span>
+                <span id="activeProductType" class="text-xs text-slate-500 font-medium">Material de TI</span>
+              </div>
+              <h2 id="activeProductName" class="text-lg font-bold text-slate-900 mt-1">Notebook 14'' Core i7 16GB 512GB SSD</h2>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnFavActiveProduct" onclick="toggleActiveProductFavorite()" class="px-3 py-1.5 text-xs font-medium border border-slate-200 hover:bg-slate-50 rounded-lg inline-flex items-center gap-1.5 transition">
+                <span class="iconify text-amber-500" data-icon="lucide:bookmark"></span> Salvar Produto
+              </button>
+              <button onclick="createInterestForCurrentProduct()" class="px-3 py-1.5 text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 rounded-lg inline-flex items-center gap-1.5 transition">
+                <span class="iconify" data-icon="lucide:bell-plus"></span> Criar Alerta para este Item
+              </button>
+            </div>
+          </div>
+
+          <!-- Statistical Metrics (Explicitly distinguishing derived analytics from raw data) -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Estatísticas Calculadas na Base Consultada</span>
+              <span id="activeProductObservationScope" class="text-xs text-slate-500 font-medium">Base: últimos 24 meses (142 compras homologadas)</span>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="text-xs text-slate-500 font-medium">Mediana Calculada</div>
+                <div id="statMediana" class="text-base font-bold font-mono text-slate-950 mt-0.5">R$ 5.480,00</div>
+                <div class="text-[11px] text-emerald-700 font-medium mt-0.5">Mais representativa que a média</div>
+              </div>
+              <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="text-xs text-slate-500 font-medium">Média Ponderada</div>
+                <div id="statMedia" class="text-base font-bold font-mono text-slate-950 mt-0.5">R$ 5.520,30</div>
+                <div id="statDesvio" class="text-[11px] text-slate-500 mt-0.5">Desvio padrão: R$ 340</div>
+              </div>
+              <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="text-xs text-slate-500 font-medium">Menor Preço Observado</div>
+                <div id="statMinimo" class="text-base font-bold font-mono text-slate-950 mt-0.5">R$ 4.790,00</div>
+                <div id="statMinimoBuyer" class="text-[11px] text-slate-500 mt-0.5">TRF 2ª Região / RJ</div>
+              </div>
+              <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="text-xs text-slate-500 font-medium">Maior Preço Observado</div>
+                <div id="statMaximo" class="text-base font-bold font-mono text-slate-950 mt-0.5">R$ 6.320,00</div>
+                <div id="statMaximoContext" class="text-[11px] text-slate-500 mt-0.5">Com garantia on-site 36m</div>
+              </div>
+              <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg col-span-2 sm:col-span-1">
+                <div class="text-xs text-slate-500 font-medium">Observações Coletadas</div>
+                <div id="statObs" class="text-base font-bold font-mono text-slate-950 mt-0.5">327 itens</div>
+                <div id="statSuppliersCount" class="text-[11px] text-slate-500 mt-0.5">58 fornecedores distintos</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic SVG Trend Chart based on selected product -->
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold text-slate-800 flex items-center gap-2">
+                <span class="iconify text-slate-600 text-base" data-icon="lucide:line-chart"></span> Tendência Histórica de Preços Unitários Homologados
+              </span>
+              <div class="flex items-center gap-3 text-xs text-slate-600">
+                <span class="inline-flex items-center gap-1.5"><span class="w-3 h-1 bg-slate-900 rounded-full inline-block"></span> Homologação (R$)</span>
+                <span class="inline-flex items-center gap-1.5"><span class="w-3 h-0.5 bg-emerald-600 inline-block border-dashed"></span> Mediana Móvel</span>
+              </div>
+            </div>
+
+            <div class="w-full h-44 bg-white rounded-lg border border-slate-200 p-2 relative flex items-end">
+              <div id="chartYMax" class="absolute left-2.5 top-2 text-[11px] font-mono text-slate-400">R$ 6.500</div>
+              <div id="chartYMid" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] font-mono text-slate-400">R$ 5.500</div>
+              <div id="chartYMin" class="absolute left-2.5 bottom-2 text-[11px] font-mono text-slate-400">R$ 4.500</div>
+
+              <svg id="productSvgChart" class="w-full h-36 pl-16 pr-2" viewBox="0 0 500 120" preserveAspectRatio="none">
+                <!-- SVG dynamically rebuilt per product in JS -->
+              </svg>
+            </div>
+            <div class="flex justify-between text-[11px] text-slate-400 font-mono mt-1.5 pl-16">
+              <span>Jan/25</span>
+              <span>Mai/25</span>
+              <span>Set/25</span>
+              <span>Jan/26</span>
+              <span>Hoje</span>
+            </div>
+          </div>
+
+          <!-- Historical Observations Table for active product -->
+          <div>
+            <h4 class="text-xs font-bold text-slate-900 mb-2">Últimos Resultados de Itens Homologados neste Catálogo</h4>
+            <div class="border border-slate-200 rounded-lg overflow-hidden text-xs">
+              <table class="w-full text-left">
+                <thead class="bg-slate-50 text-slate-600 font-semibold text-[11px] uppercase border-b border-slate-200">
+                  <tr>
+                    <th class="py-2.5 px-3">Órgão Comprador</th>
+                    <th class="py-2.5 px-3">Fornecedor Adjudicado</th>
+                    <th class="py-2.5 px-3">Quantidade</th>
+                    <th class="py-2.5 px-3">Preço Unitário</th>
+                    <th class="py-2.5 px-3">Data da Homologação</th>
+                  </tr>
+                </thead>
+                <tbody id="productHistoricalTableBody" class="divide-y divide-slate-100">
+                  <!-- Injected via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: FORNECEDORES & CONCORRENTES -->
+      <section id="view-fornecedores" class="max-w-6xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-950">Empresas Vencedoras & Concorrentes</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Empresas com resultados homologados observáveis nos dados do Compras.gov.br</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="text" id="supplierSearchInput" oninput="filterSuppliers()" placeholder="Filtrar por Razão Social ou CNPJ..." class="text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-lg w-72 focus:outline-none focus:border-slate-900">
+          </div>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-xs text-amber-900 flex items-start gap-2.5">
+          <span class="iconify text-base text-amber-700 shrink-0 mt-0.5" data-icon="lucide:alert-circle"></span>
+          <div>
+            <strong>Rigor terminológico do Pregoeiros:</strong> A métrica exibida reflete resultados homologados observáveis na base consultada do Compras.gov.br (Lei 14.133/21). Não representa o faturamento total da empresa em outros portais ou contratos sigilosos.
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="suppliersGrid">
+          <!-- Injected via JS -->
+        </div>
+      </section>
+
+      <!-- VIEW 5: CONTRATOS PRÓXIMOS DO VENCIMENTO -->
+      <section id="view-contratos" class="max-w-6xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-950">Contratos Próximos do Vencimento</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Sinais de antecipação: vigências contratuais expirando que podem motivar novas licitações</p>
+          </div>
+        </div>
+
+        <!-- Metric badges for expiration windows (Precise Terminology) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="p-4 bg-red-50 border border-red-200 rounded-xl">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-red-900">Contratos a vencer em até 30 dias</span>
+              <span class="iconify text-red-700 text-lg" data-icon="lucide:alert-triangle"></span>
+            </div>
+            <div class="text-2xl font-bold font-mono text-red-950 mt-1">87 contratos</div>
+            <div class="text-xs text-red-700 mt-0.5">Potencial de renovação ou novo edital iminente</div>
+          </div>
+          <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-amber-900">Contratos a vencer em até 60 dias</span>
+              <span class="iconify text-amber-700 text-lg" data-icon="lucide:clock"></span>
+            </div>
+            <div class="text-2xl font-bold font-mono text-amber-950 mt-1">143 contratos</div>
+            <div class="text-xs text-amber-700 mt-0.5">Órgãos em período de estudo técnico preliminar</div>
+          </div>
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-800">Contratos a vencer em até 90 dias</span>
+              <span class="iconify text-slate-600 text-lg" data-icon="lucide:calendar"></span>
+            </div>
+            <div class="text-2xl font-bold font-mono text-slate-900 mt-1">211 contratos</div>
+            <div class="text-xs text-slate-600 mt-0.5">Monitoramento de fim de vigência contratual</div>
+          </div>
+        </div>
+
+        <!-- Contracts Table -->
+        <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold text-[11px] uppercase">
+              <tr>
+                <th class="py-3 px-4">Contrato / Número</th>
+                <th class="py-3 px-4">Órgão Contratante</th>
+                <th class="py-3 px-4">Fornecedor Atual</th>
+                <th class="py-3 px-4">Fim de Vigência</th>
+                <th class="py-3 px-4">Valor Total Registrado</th>
+                <th class="py-3 px-4">Prazo Restante</th>
+              </tr>
+            </thead>
+            <tbody id="contractsTableBody" class="divide-y divide-slate-100">
+              <!-- Injected via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 6: RADAR & ALERTAS -->
+      <section id="view-radar" class="max-w-5xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl font-bold tracking-tight text-slate-950">Radar de Eventos & Alertas</h1>
+              <span class="px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-800 rounded-full" id="radarUnreadBadge">4 não vistos</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Novas contratações compatíveis com seus nichos, retificações e resultados</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="markAllRadarRead()" class="px-3 py-1.5 text-xs font-medium border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg inline-flex items-center gap-1.5 transition">
+              <span class="iconify" data-icon="lucide:check-check"></span> Marcar todos como vistos
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter tabs that PRESERVE STATE -->
+        <div class="flex items-center gap-2 border-b border-slate-200 text-xs">
+          <button onclick="filterRadar('all')" id="radar-tab-all" class="radar-tab pb-2.5 px-2 font-semibold text-slate-900 border-b-2 border-slate-900">Todos</button>
+          <button onclick="filterRadar('unread')" id="radar-tab-unread" class="radar-tab pb-2.5 px-2 font-medium text-slate-500 hover:text-slate-900">Apenas não vistos</button>
+          <button onclick="filterRadar('contratacao')" id="radar-tab-contratacao" class="radar-tab pb-2.5 px-2 font-medium text-slate-500 hover:text-slate-900">Novas Oportunidades</button>
+          <button onclick="filterRadar('retificacao')" id="radar-tab-retificacao" class="radar-tab pb-2.5 px-2 font-medium text-slate-500 hover:text-slate-900">Retificações / Mudanças</button>
+          <button onclick="filterRadar('resultado')" id="radar-tab-resultado" class="radar-tab pb-2.5 px-2 font-medium text-slate-500 hover:text-slate-900">Resultados</button>
+        </div>
+
+        <!-- Radar Feed -->
+        <div id="radarEventFeed" class="space-y-3">
+          <!-- Injected via JS -->
+        </div>
+      </section>
+
+      <!-- VIEW 7: FAVORITOS (ITENS & EDITAIS EM DISPUTA) -->
+      <section id="view-favoritos" class="max-w-5xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-950">Editais Salvos & Entidades Acompanhadas</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Oportunidades que você selecionou para triagem, concorrentes ou itens estratégicos</p>
+          </div>
+        </div>
+
+        <!-- Favoritos Category Filter -->
+        <div class="flex items-center gap-2 text-xs">
+          <button onclick="filterFavorites('all')" class="fav-tab px-3 py-1.5 bg-slate-900 text-white rounded-lg font-medium">Todos</button>
+          <button onclick="filterFavorites('contratacao')" class="fav-tab px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg font-medium">Editais / Oportunidades</button>
+          <button onclick="filterFavorites('produto')" class="fav-tab px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg font-medium">Itens de Catálogo</button>
+          <button onclick="filterFavorites('fornecedor')" class="fav-tab px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg font-medium">Fornecedores</button>
+        </div>
+
+        <div id="favoritesList" class="space-y-3">
+          <!-- Injected via JS -->
+        </div>
+      </section>
+
+      <!-- VIEW 8: ALERTAS DE OPORTUNIDADE (INTERESSES) -->
+      <section id="view-interesses" class="max-w-5xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-950">Alertas Salvos de Oportunidades</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Regras de monitoramento que notificam você automaticamente quando um edital do seu nicho for publicado</p>
+          </div>
+          <button onclick="openModalCreateInterest()" class="px-3.5 py-2 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg inline-flex items-center gap-1.5 shadow-xs transition">
+            <span class="iconify text-sm" data-icon="lucide:plus"></span>
+            <span>Criar Novo Alerta</span>
+          </button>
+        </div>
+
+        <div id="interestsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Injected via JS -->
+        </div>
+      </section>
+
+      <!-- VIEW 9: HISTÓRICO OBSERVADO -->
+      <section id="view-historico" class="max-w-6xl mx-auto space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-950">Histórico de Resultados Observados</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Volume de adjudicações homologadas por fornecedor na base do Compras.gov.br</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="exportData('json', 'historico')" class="px-3 py-1.5 text-xs font-medium bg-white text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 inline-flex items-center gap-1.5 shadow-xs">
+              <span class="iconify" data-icon="lucide:download"></span> Exportar Dataset JSON
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <span class="text-xs font-medium text-slate-500">Resultados Observados</span>
+            <div class="text-2xl font-bold font-mono text-slate-950 mt-1">12.483 itens</div>
+            <span class="text-xs text-slate-400">Homologados nos últimos 12 meses</span>
+          </div>
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <span class="text-xs font-medium text-slate-500">Fornecedores Registrados</span>
+            <div class="text-2xl font-bold font-mono text-slate-950 mt-1">418 empresas</div>
+            <span class="text-xs text-slate-400">Ao menos 1 item adjudicado</span>
+          </div>
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <span class="text-xs font-medium text-slate-500">Órgãos Compradores</span>
+            <div class="text-2xl font-bold font-mono text-slate-950 mt-1">731 UASGs</div>
+            <span class="text-xs text-slate-400">Compras federais e integradas</span>
+          </div>
+        </div>
+
+        <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900">Fornecedores por Volume de Itens Homologados</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Contagem precisa de itens adjudicados na base consultada</p>
+            </div>
+            <span class="text-xs font-mono text-slate-500">Cobertura: Nacional</span>
+          </div>
+
+          <div class="border border-slate-200 rounded-lg overflow-hidden text-xs">
+            <table class="w-full text-left">
+              <thead class="bg-slate-50 text-slate-600 font-semibold uppercase text-[11px] border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-4">Posição & Razão Social</th>
+                  <th class="py-3 px-4">CNPJ</th>
+                  <th class="py-3 px-4">Itens Homologados</th>
+                  <th class="py-3 px-4">Valor Total Homologado</th>
+                  <th class="py-3 px-4">Principal Família</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr>
+                  <td class="py-3 px-4 font-semibold text-slate-900">
+                    <span class="text-slate-400 font-mono mr-2">#1</span> Positivo Tecnologia S.A.
+                  </td>
+                  <td class="py-3 px-4 font-mono text-slate-600">01.076.218/0001-65</td>
+                  <td class="py-3 px-4 font-mono font-bold text-slate-900">432 itens</td>
+                  <td class="py-3 px-4 font-mono font-medium text-slate-950">R$ 142.800.000,00</td>
+                  <td class="py-3 px-4 text-slate-600">Equipamentos de Informática</td>
+                </tr>
+                <tr>
+                  <td class="py-3 px-4 font-semibold text-slate-900">
+                    <span class="text-slate-400 font-mono mr-2">#2</span> Dell Computadores do Brasil Ltda
+                  </td>
+                  <td class="py-3 px-4 font-mono text-slate-600">72.381.189/0001-10</td>
+                  <td class="py-3 px-4 font-mono font-bold text-slate-900">319 itens</td>
+                  <td class="py-3 px-4 font-mono font-medium text-slate-950">R$ 189.450.000,00</td>
+                  <td class="py-3 px-4 text-slate-600">Servidores & Laptops</td>
+                </tr>
+                <tr>
+                  <td class="py-3 px-4 font-semibold text-slate-900">
+                    <span class="text-slate-400 font-mono mr-2">#3</span> ACME Soluções Hospitalares Ltda
+                  </td>
+                  <td class="py-3 px-4 font-mono text-slate-600">12.345.678/0001-90</td>
+                  <td class="py-3 px-4 font-mono font-bold text-slate-900">287 itens</td>
+                  <td class="py-3 px-4 font-mono font-medium text-slate-950">R$ 38.210.000,00</td>
+                  <td class="py-3 px-4 text-slate-600">Material Médico Hospitalar</td>
+                </tr>
+                <tr>
+                  <td class="py-3 px-4 font-semibold text-slate-900">
+                    <span class="text-slate-400 font-mono mr-2">#4</span> TechSupply Comércio & Distribuição
+                  </td>
+                  <td class="py-3 px-4 font-mono text-slate-600">22.881.902/0001-44</td>
+                  <td class="py-3 px-4 font-mono font-bold text-slate-900">194 itens</td>
+                  <td class="py-3 px-4 font-mono font-medium text-slate-950">R$ 21.600.000,00</td>
+                  <td class="py-3 px-4 text-slate-600">Suprimentos e Periféricos</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL: DETALHE COMPLETO & FICHA DE TRIAGEM DO EDITAL (DECISÃO DO FORNECEDOR) -->
+  <div id="modalProcurementDetail" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white border border-slate-200 rounded-xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in duration-150">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-200 flex items-start justify-between bg-slate-50">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="detailBadgeStatus" class="px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-800 rounded">Recebendo Propostas</span>
+            <span id="detailSegmentBadge" class="px-2 py-0.5 text-xs font-mono bg-slate-200 text-slate-700 rounded">TI & Equipamentos</span>
+            <span id="detailUfBadge" class="px-2 py-0.5 text-xs font-mono bg-slate-900 text-white rounded">UF: RJ</span>
+          </div>
+          <h2 id="detailProcurementTitle" class="text-base sm:text-lg font-bold text-slate-950 mt-1.5 leading-snug">Aquisição de notebooks de alta performance</h2>
+          <div class="text-xs text-slate-600 flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+            <span id="detailProcurementOrg" class="font-medium text-slate-800">Tribunal Regional Federal da 2ª Região</span>
+            <span>•</span>
+            <span id="detailProcurementUasg" class="font-mono">UASG: 090028</span>
+            <span>•</span>
+            <span id="detailProcesso" class="font-mono">Processo: 0012938/2026</span>
+          </div>
+        </div>
+        <button onclick="closeModalProcurementDetail()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition" aria-label="Fechar modal">
+          <span class="iconify text-xl" data-icon="lucide:x"></span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Decision parameters) -->
+      <div class="p-6 overflow-y-auto space-y-6 text-xs flex-1">
+        
+        <!-- Decision Banner (GO / NO-GO) -->
+        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-600">Sua Decisão Comercial para este Edital</div>
+            <div class="text-sm font-semibold text-slate-900 mt-0.5" id="detailDecisionStatusText">Aguardando Triagem</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btnTriageGo" onclick="setProcurementTriageDecision('go')" class="px-3.5 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg inline-flex items-center gap-1.5 shadow-xs transition">
+              <span class="iconify text-sm" data-icon="lucide:check-circle-2"></span>
+              <span>GO (Disputar)</span>
+            </button>
+            <button id="btnTriageReview" onclick="setProcurementTriageDecision('analisando')" class="px-3.5 py-2 text-xs font-medium bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg inline-flex items-center gap-1.5 transition">
+              <span class="iconify text-sm" data-icon="lucide:clock"></span>
+              <span>Em Análise</span>
+            </button>
+            <button id="btnTriageNoGo" onclick="setProcurementTriageDecision('nogo')" class="px-3.5 py-2 text-xs font-medium bg-red-100 hover:bg-red-200 text-red-900 rounded-lg inline-flex items-center gap-1.5 transition">
+              <span class="iconify text-sm" data-icon="lucide:x-circle"></span>
+              <span>NO-GO (Descartar)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Crucial Logistics & Timing Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div class="p-3.5 bg-red-50/70 border border-red-200 rounded-xl">
+            <span class="text-red-900 text-xs font-semibold flex items-center gap-1">
+              <span class="iconify" data-icon="lucide:clock-4"></span> Prazo de Propostas
+            </span>
+            <div id="detailDeadline" class="font-mono font-bold text-red-950 text-sm mt-1">28/09/2026 às 10:00</div>
+            <div id="detailDeadlineCountdown" class="text-xs text-red-700 font-medium mt-0.5">Faltam 3 dias</div>
+          </div>
+          
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+            <span class="text-slate-600 text-xs font-semibold flex items-center gap-1">
+              <span class="iconify" data-icon="lucide:truck"></span> Local e Prazo de Entrega
+            </span>
+            <div id="detailDeliveryPlace" class="font-medium text-slate-900 text-xs mt-1">Rio de Janeiro / RJ</div>
+            <div id="detailDeliveryDays" class="text-xs text-slate-500 mt-0.5">Prazo: até 30 dias corridos</div>
+          </div>
+
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+            <span class="text-slate-600 text-xs font-semibold flex items-center gap-1">
+              <span class="iconify" data-icon="lucide:wallet"></span> Condições de Pagamento
+            </span>
+            <div id="detailPaymentCondition" class="font-medium text-slate-900 text-xs mt-1">Até 30 dias após ateste da NF</div>
+            <div class="text-xs text-slate-500 mt-0.5">Ordem bancária no Siafi</div>
+          </div>
+
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+            <span class="text-slate-600 text-xs font-semibold flex items-center gap-1">
+              <span class="iconify" data-icon="lucide:dollar-sign"></span> Valor Total Estimado
+            </span>
+            <div id="detailValor" class="font-mono font-bold text-slate-950 text-sm mt-1">R$ 1.840.000,00</div>
+            <div id="detailModalidade" class="text-xs text-slate-500 mt-0.5">Pregão Eletrônico</div>
+          </div>
+        </div>
+
+        <!-- Specific Items & Lots Table for this exact procurement -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-bold text-sm text-slate-900">Itens e Lotes Específicos Deste Edital</h4>
+            <span class="text-xs text-slate-500" id="detailItemsCountLabel">3 itens cadastrados</span>
+          </div>
+          <div class="border border-slate-200 rounded-xl overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold text-[11px] uppercase border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Item</th>
+                  <th class="py-2.5 px-3">CATMAT / Descrição Técnica</th>
+                  <th class="py-2.5 px-3">Qtd</th>
+                  <th class="py-2.5 px-3">Valor Unit. Estimado</th>
+                  <th class="py-2.5 px-3">Valor Total</th>
+                  <th class="py-2.5 px-3 text-right">Adequação</th>
+                </tr>
+              </thead>
+              <tbody id="detailItemsTableBody" class="divide-y divide-slate-100">
+                <!-- Injected via JS based on procurement ID -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Requirements & Documentation Checklist for Habilitação -->
+        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-xs uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+              <span class="iconify text-slate-700" data-icon="lucide:clipboard-check"></span>
+              Exigências de Habilitação & Documentos Requeridos
+            </h4>
+            <span class="text-xs text-slate-500">Lei 14.133/21</span>
+          </div>
+          <div id="detailRequirementsChecklist" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Official Links & Files -->
+        <div class="border border-slate-200 rounded-xl p-4 bg-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <span class="text-xs font-bold text-slate-900">Documentação Oficial da Publicação</span>
+            <div class="text-xs text-slate-500 mt-0.5">Consulte o edital na íntegra, termo de referência e anexos oficiais</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <a id="detailLinkComprasGov" href="https://comprasnet.gov.br" target="_blank" class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg inline-flex items-center gap-1.5 transition">
+              <span class="iconify" data-icon="lucide:external-link"></span> Ver no Compras.gov.br
+            </a>
+            <button onclick="downloadEditalMock()" class="px-3 py-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg inline-flex items-center gap-1.5 shadow-xs transition">
+              <span class="iconify" data-icon="lucide:download"></span> Baixar Edital (PDF)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs">
+        <span class="text-slate-500 font-mono" id="detailProcurementUniqueId">ID Oficial: 090028-05-00042/2026</span>
+        <button onclick="closeModalProcurementDetail()" class="px-4 py-2 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition">Concluir Análise</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CRIAR NOVO ALERTA DE OPORTUNIDADE -->
+  <div id="modalCreateInterest" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-slate-200 rounded-xl shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center gap-2">
+          <span class="iconify text-slate-900 text-lg" data-icon="lucide:bell-plus"></span>
+          <h3 class="font-bold text-sm text-slate-900">Criar Alerta de Oportunidade</h3>
+        </div>
+        <button onclick="closeModalCreateInterest()" class="text-slate-400 hover:text-slate-700">
+          <span class="iconify text-lg" data-icon="lucide:x"></span>
+        </button>
+      </div>
+
+      <form id="formCreateInterest" onsubmit="handleSaveInterest(event)" class="p-5 space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Nome do Alerta Comercial</label>
+          <input type="text" id="interestInputName" required placeholder="Ex: Notebooks no RJ, Odontologia SP" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900 text-xs">
+          <span class="text-[11px] text-slate-500 mt-1 block">Rótulo que aparecerá na sua Fila de Triagem e no Radar</span>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Catálogo Padronizado (CATMAT / CATSER)</label>
+          <select id="interestInputProduct" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900 text-xs">
+            <option value="Notebook 14'' Core i7">Notebook 14'' Core i7 (CATMAT 482910)</option>
+            <option value="Monitor 27'' IPS 4K">Monitor 27'' IPS 4K (CATMAT 439120)</option>
+            <option value="Ar Condicionado Split 18.000 BTUs">Ar Condicionado Split 18.000 BTUs (CATMAT 392102)</option>
+            <option value="Material Hospitalar Descartável">Material Hospitalar Descartável (CATMAT 192834)</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">UF de Entrega</label>
+            <select id="interestInputUf" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900 text-xs">
+              <option value="Todos">Brasil (Todas as UFs)</option>
+              <option value="RJ">RJ - Rio de Janeiro</option>
+              <option value="SP">SP - São Paulo</option>
+              <option value="DF">DF - Distrito Federal</option>
+              <option value="MG">MG - Minas Gerais</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Esfera / Comprador</label>
+            <select id="interestInputBuyer" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-900 text-xs">
+              <option value="Todos">Todos os órgãos</option>
+              <option value="Tribunal Regional Federal da 2ª Região">Poder Judiciário (TRF)</option>
+              <option value="Ministério da Saúde - DLOG">Ministérios (Executivo)</option>
+              <option value="Comando da Marinha">Forças Armadas</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModalCreateInterest()" class="px-3.5 py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold shadow-xs">Salvar Alerta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ESTADO DAS FONTES COLETADAS & COBERTURA -->
+  <div id="modalSyncStatus" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-slate-200 rounded-xl shadow-xl max-w-lg w-full overflow-hidden text-xs">
+      <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center gap-2">
+          <span class="iconify text-slate-900 text-lg" data-icon="lucide:database"></span>
+          <h3 class="font-bold text-slate-900 text-sm">Fontes Consultadas & Frescor da Base</h3>
+        </div>
+        <button onclick="closeSyncStatusModal()" class="text-slate-400 hover:text-slate-700">
+          <span class="iconify text-lg" data-icon="lucide:x"></span>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <p class="text-slate-600 leading-relaxed">
+          O Pregoeiros consolida dados oficiais de compras governamentais sob a Lei nº 14.133/2021. Você pode verificar quando cada módulo foi atualizado com sucesso:
+        </p>
+        
+        <div class="border border-slate-200 rounded-lg divide-y divide-slate-100">
+          <div class="p-3 flex items-center justify-between">
+            <div>
+              <div class="font-semibold text-slate-900">Editais & Contratações Abertas</div>
+              <div class="text-[11px] text-slate-500">Última checagem: há 12 minutos • 1.482 oportunidades ativas</div>
+            </div>
+            <span class="text-emerald-700 font-medium text-xs flex items-center gap-1">
+              <span class="iconify text-emerald-600 text-base" data-icon="lucide:check-circle"></span> Atualizado
+            </span>
+          </div>
+          <div class="p-3 flex items-center justify-between">
+            <div>
+              <div class="font-semibold text-slate-900">Resultados & Homologações de Itens</div>
+              <div class="text-[11px] text-slate-500">Última checagem: há 14 minutos • 3.209 adjudicações</div>
+            </div>
+            <span class="text-emerald-700 font-medium text-xs flex items-center gap-1">
+              <span class="iconify text-emerald-600 text-base" data-icon="lucide:check-circle"></span> Atualizado
+            </span>
+          </div>
+          <div class="p-3 flex items-center justify-between">
+            <div>
+              <div class="font-semibold text-slate-900">Base Histórica de Preços Praticados</div>
+              <div class="text-[11px] text-slate-500">Última checagem: hoje, às 03:15 • 14.890 registros</div>
+            </div>
+            <span class="text-emerald-700 font-medium text-xs flex items-center gap-1">
+              <span class="iconify text-emerald-600 text-base" data-icon="lucide:check-circle"></span> Atualizado
+            </span>
+          </div>
+          <div class="p-3 flex items-center justify-between">
+            <div>
+              <div class="font-semibold text-slate-900">Catálogo Padronizado CATMAT / CATSER</div>
+              <div class="text-[11px] text-slate-500">Última checagem: ontem • 281.000 especificações</div>
+            </div>
+            <span class="text-emerald-700 font-medium text-xs flex items-center gap-1">
+              <span class="iconify text-emerald-600 text-base" data-icon="lucide:check-circle"></span> Atualizado
+            </span>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 space-y-1">
+          <div class="font-semibold text-slate-900">Garantia de Frescor e Continuidade</div>
+          <div>Caso a API do governo apresente indisponibilidade temporária, o Pregoeiros mantém a consulta rápida aos dados preservados da última coleta sem bloquear o seu trabalho.</div>
+        </div>
+      </div>
+
+      <div class="px-5 py-3.5 border-t border-slate-200 bg-slate-50 flex justify-end">
+        <button onclick="closeSyncStatusModal()" class="px-4 py-2 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastNotification" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl text-xs flex items-center gap-3 -translate-y-12 opacity-0 pointer-events-none transition-all duration-200 z-50">
+    <span class="iconify text-emerald-400 text-lg" data-icon="lucide:check-circle"></span>
+    <span id="toastMessage" class="font-medium">Operação realizada com sucesso.</span>
+  </div>
+
+  <script>
+    // State Store (Aligned with Vendor Triage PRD requirements)
+    const state = {
+      activeView: 'dashboard',
+      radarFilter: 'all',
+      activeProcurementId: null,
+
+      // Opportunities / Procurements with specific items & triage states
+      procurements: [
+        { 
+          id: 'p-1', 
+          objeto: 'Aquisição de notebooks de alta performance com garantia on-site 36 meses', 
+          comprador: 'Tribunal Regional Federal da 2ª Região', 
+          uf: 'RJ', 
+          modalidade: 'Pregão Eletrônico', 
+          valor: 1840000, 
+          situacao: 'Recebendo Propostas', 
+          processo: '0012938/2026', 
+          uasg: '090028',
+          segmento: 'TI',
+          prazoProposta: '28/09/2026 às 10:00',
+          prazoUrgencia: 'urgente',
+          diasRestantes: 3,
+          localEntrega: 'Rua Acre, 80 - Centro, Rio de Janeiro/RJ',
+          prazoEntregaDias: '30 dias corridos',
+          condicoesPagamento: 'Em até 30 dias corridos após ateste definitivo da Nota Fiscal',
+          decisaoTriagem: 'pendente', // pendente | go | analisando | nogo
+          motivoDescarte: '',
+          itens: [
+            { num: 1, catmat: '482910', desc: 'Notebook 14\'\' Core i7 16GB 512GB SSD com TPM 2.0', qtd: 250, unitario: 5480, total: 1370000, compativel: true },
+            { num: 2, catmat: '439120', desc: 'Monitor 27\'\' IPS 4K com ajuste ergonômico de altura', qtd: 200, unitario: 1850, total: 370000, compativel: true },
+            { num: 3, catmat: '401928', desc: 'Docking Station USB-C Thunderbolt 4 com fonte 130W', qtd: 100, unitario: 1000, total: 100000, compativel: true }
+          ],
+          requisitos: [
+            { texto: 'Atestado de capacidade técnica fornecido por pessoa jurídica de direito público ou privado comprovando fornecimento de ao menos 125 notebooks', ok: true },
+            { texto: 'Certificado de garantia on-site de 36 meses emitido pelo fabricante do equipamento', ok: true },
+            { texto: 'Balanço patrimonial com índices de Liquidez Geral (LG) e Corrente (LC) superiores a 1,0', ok: true },
+            { texto: 'Comprovação de canal de suporte técnico com tempo de resposta máximo de 24 horas úteis', ok: false }
+          ]
+        },
+        { 
+          id: 'p-2', 
+          objeto: 'Fornecimento continuado de material hospitalar e insumos cirúrgicos descartáveis', 
+          comprador: 'Ministério da Saúde - DLOG', 
+          uf: 'DF', 
+          modalidade: 'Pregão Eletrônico', 
+          valor: 8900000, 
+          situacao: 'Recebendo Propostas', 
+          processo: '25000.109283/2026', 
+          uasg: '250005',
+          segmento: 'Saúde',
+          prazoProposta: '27/09/2026 às 14:00',
+          prazoUrgencia: 'critico',
+          diasRestantes: 2,
+          localEntrega: 'Almoxarifado Central do Ministério da Saúde - Brasília/DF',
+          prazoEntregaDias: '15 dias úteis após empenho',
+          condicoesPagamento: '30 dias mediante liquidação Siafi',
+          decisaoTriagem: 'pendente',
+          motivoDescarte: '',
+          itens: [
+            { num: 1, catmat: '192834', desc: 'Kit cirúrgico estéril descartável com avental reforçado', qtd: 50000, unitario: 45.0, total: 2250000, compativel: true },
+            { num: 2, catmat: '192835', desc: 'Luva de procedimento cirúrgico estéril tam M cx c/ 100', qtd: 80000, unitario: 83.12, total: 6650000, compativel: false }
+          ],
+          requisitos: [
+            { texto: 'Autorização de Funcionamento de Empresa (AFE) expedida pela ANVISA', ok: true },
+            { texto: 'Certificado de Boas Práticas de Fabricação e Distribuição vigente', ok: true },
+            { texto: 'Apresentação de Registro sanitário de todos os itens cotados', ok: true }
+          ]
+        },
+        { 
+          id: 'p-3', 
+          objeto: 'Contratação emergencial de reagentes diagnósticos e testes rápidos', 
+          comprador: 'Secretaria Estadual de Saúde - SES/SP', 
+          uf: 'SP', 
+          modalidade: 'Dispensa de Licitação', 
+          valor: 450000, 
+          situacao: 'Resultado Homologado', 
+          processo: 'SES-SP-2026/891', 
+          uasg: '925001',
+          segmento: 'Saúde',
+          prazoProposta: 'Homologado em 15/09/2026',
+          prazoUrgencia: 'encerrado',
+          diasRestantes: 0,
+          localEntrega: 'São Paulo/SP',
+          prazoEntregaDias: 'Imediato (10 dias)',
+          condicoesPagamento: '15 dias',
+          decisaoTriagem: 'nogo',
+          motivoDescarte: 'Processo encerrado com homologação prévia',
+          itens: [
+            { num: 1, catmat: '184910', desc: 'Kit de teste rápido imunológico lote 1', qtd: 5000, unitario: 90.0, total: 450000, compativel: true }
+          ],
+          requisitos: []
+        },
+        { 
+          id: 'p-4', 
+          objeto: 'Renovação do parque computacional e monitores ergonômicos 27 polegadas', 
+          comprador: 'Superintendência da Polícia Federal', 
+          uf: 'RJ', 
+          modalidade: 'Pregão Eletrônico', 
+          valor: 620000, 
+          situacao: 'Recebendo Propostas', 
+          processo: '08200.003912/2026', 
+          uasg: '200109',
+          segmento: 'TI',
+          prazoProposta: '02/10/2026 às 11:00',
+          prazoUrgencia: 'normal',
+          diasRestantes: 7,
+          localEntrega: 'Praça Mauá, Rio de Janeiro/RJ',
+          prazoEntregaDias: '45 dias corridos',
+          condicoesPagamento: '30 dias corridos',
+          decisaoTriagem: 'go',
+          motivoDescarte: '',
+          itens: [
+            { num: 1, catmat: '439120', desc: 'Monitor 27\'\' IPS 4K com ajuste de altura e hub USB integrado', qtd: 250, unitario: 1850, total: 462500, compativel: true },
+            { num: 2, catmat: '401928', desc: 'Suporte articulado para monitor padrão VESA 100x100', qtd: 250, unitario: 630, total: 157500, compativel: true }
+          ],
+          requisitos: [
+            { texto: 'Laudo de conformidade ergonômica com a Norma Regulamentadora NR-17', ok: true },
+            { texto: 'Certificado de garantia de 3 anos do fabricante', ok: true }
+          ]
+        },
+        { 
+          id: 'p-5', 
+          objeto: 'Manutenção preventiva e corretiva com substituição de sistemas de climatização', 
+          comprador: 'Comando da Aeronáutica - GAP-DF', 
+          uf: 'DF', 
+          modalidade: 'Concorrência', 
+          valor: 1250000, 
+          situacao: 'Recebendo Propostas', 
+          processo: '67200.001928/2026', 
+          uasg: '120015',
+          segmento: 'Climatização',
+          prazoProposta: '05/10/2026 às 09:30',
+          prazoUrgencia: 'normal',
+          diasRestantes: 10,
+          localEntrega: 'Base Aérea de Brasília/DF',
+          prazoEntregaDias: 'Conforme ordem de serviço',
+          condicoesPagamento: '30 dias',
+          decisaoTriagem: 'pendente',
+          motivoDescarte: '',
+          itens: [
+            { num: 1, catmat: '392102', desc: 'Ar Condicionado Split 18.000 BTUs Inverter quente/frio', qtd: 40, unitario: 3290, total: 131600, compativel: true },
+            { num: 2, catmat: '392105', desc: 'Prestação de serviço contínuo de manutenção de climatização', qtd: 12, unitario: 93200, total: 1118400, compativel: false }
+          ],
+          requisitos: [
+            { texto: 'Registro da empresa e do responsável técnico no CREA da região', ok: true }
+          ]
+        },
+        { 
+          id: 'p-6', 
+          objeto: 'Aquisição de estações de trabalho e equipamentos periféricos para cartórios', 
+          comprador: 'Tribunal de Justiça de Minas Gerais', 
+          uf: 'MG', 
+          modalidade: 'Pregão Eletrônico', 
+          valor: 3100000, 
+          situacao: 'Resultado Homologado', 
+          processo: 'TJMG-2026/0491', 
+          uasg: '926001',
+          segmento: 'TI',
+          prazoProposta: 'Homologado em 10/09/2026',
+          prazoUrgencia: 'encerrado',
+          diasRestantes: 0,
+          localEntrega: 'Belo Horizonte/MG',
+          prazoEntregaDias: '60 dias',
+          condicoesPagamento: '30 dias',
+          decisaoTriagem: 'nogo',
+          motivoDescarte: 'Edital concluído',
+          itens: [
+            { num: 1, catmat: '482910', desc: 'Notebook 14\'\' Core i7 16GB 512GB SSD', qtd: 400, unitario: 5350, total: 2140000, compativel: true }
+          ],
+          requisitos: []
+        }
+      ],
+
+      // Products Catalog (with dynamic dataset per product)
+      products: [
+        { 
+          id: 'prod-1', 
+          catmat: '482910', 
+          nome: 'Notebook 14\'\' Core i7 16GB 512GB SSD', 
+          tipo: 'Material de TI', 
+          mediana: 5480, 
+          media: 5520.30,
+          desvio: 340,
+          min: 4790, 
+          minBuyer: 'TRF 2ª Região / RJ',
+          max: 6320, 
+          maxContext: 'Com garantia on-site 36m',
+          obs: 327, 
+          fornecedores: 58,
+          svgPoints: 'M 0,90 Q 60,75 120,55 T 240,65 T 360,35 T 500,45',
+          svgCircles: [ { cx: 0, cy: 90 }, { cx: 120, cy: 55 }, { cx: 240, cy: 65 }, { cx: 360, cy: 35 }, { cx: 500, cy: 45 } ],
+          historicalBids: [
+            { orgao: 'Tribunal Regional Federal da 2ª Região (RJ)', fornecedor: 'Positivo Tecnologia S.A.', qtd: '150 un', preco: 5120, data: '12/09/2026' },
+            { orgao: 'Ministério da Saúde - DLOG', fornecedor: 'Dell Computadores do Brasil Ltda', qtd: '400 un', preco: 5390, data: '08/09/2026' },
+            { orgao: 'Comando da Marinha - RJ', fornecedor: 'Lenovo Tecnologia Brasil Ltda', qtd: '80 un', preco: 5480, data: '29/08/2026' }
+          ]
+        },
+        { 
+          id: 'prod-2', 
+          catmat: '439120', 
+          nome: 'Monitor 27\'\' IPS 4K com ajuste ergonômico', 
+          tipo: 'Periféricos de Vídeo', 
+          mediana: 1850, 
+          media: 1892.40,
+          desvio: 115,
+          min: 1490, 
+          minBuyer: 'Polícia Federal / RJ',
+          max: 2300, 
+          maxContext: 'Com hub USB-C e cabo HDMI 2.1',
+          obs: 184, 
+          fornecedores: 34,
+          svgPoints: 'M 0,105 Q 80,95 160,70 T 320,60 T 420,50 T 500,40',
+          svgCircles: [ { cx: 0, cy: 105 }, { cx: 160, cy: 70 }, { cx: 320, cy: 60 }, { cx: 420, cy: 50 }, { cx: 500, cy: 40 } ],
+          historicalBids: [
+            { orgao: 'Superintendência da Polícia Federal (RJ)', fornecedor: 'TechSupply Comércio e Serviços Ltda', qtd: '250 un', preco: 1850, data: '14/09/2026' },
+            { orgao: 'Tribunal Regional Eleitoral de SP', fornecedor: 'LG Electronics do Brasil', qtd: '120 un', preco: 1790, data: '02/09/2026' },
+            { orgao: 'Universidade Federal do Rio de Janeiro', fornecedor: 'Positivo Tecnologia S.A.', qtd: '90 un', preco: 1840, data: '18/08/2026' }
+          ]
+        },
+        { 
+          id: 'prod-3', 
+          catmat: '392102', 
+          nome: 'Ar Condicionado Split 18.000 BTUs Inverter', 
+          tipo: 'Equipamentos de Climatização', 
+          mediana: 3290, 
+          media: 3340.10,
+          desvio: 210,
+          min: 2800, 
+          minBuyer: 'Comando da Aeronáutica / DF',
+          max: 4100, 
+          maxContext: 'Incluso instalação em altura',
+          obs: 92, 
+          fornecedores: 22,
+          svgPoints: 'M 0,80 Q 100,85 200,75 T 350,70 T 450,60 T 500,65',
+          svgCircles: [ { cx: 0, cy: 80 }, { cx: 200, cy: 75 }, { cx: 350, cy: 70 }, { cx: 500, cy: 65 } ],
+          historicalBids: [
+            { orgao: 'Comando da Aeronáutica - GAP-DF', fornecedor: 'ClimaFrio Engenharia Térmica Ltda', qtd: '40 un', preco: 3290, data: '01/09/2026' },
+            { orgao: 'Hospital Universitário de Brasília', fornecedor: 'Daikin Brasil Comercial Ltda', qtd: '25 un', preco: 3450, data: '19/08/2026' }
+          ]
+        }
+      ],
+
+      // Monitoring Alert Rules (Interesses)
+      interests: [
+        { id: 'int-1', name: 'Notebooks no Rio de Janeiro', product: 'Notebook 14\'\' Core i7', uf: 'RJ', buyer: 'Todos', newMatches: 7 },
+        { id: 'int-2', name: 'Material Hospitalar em SP', product: 'Material Hospitalar Descartável', uf: 'SP', buyer: 'Ministério da Saúde - DLOG', newMatches: 3 },
+        { id: 'int-3', name: 'Climatização & Ar Condicionado', product: 'Ar Condicionado Split 18.000 BTUs', uf: 'Todos', buyer: 'Todos', newMatches: 2 }
+      ],
+
+      // Radar & Event Inbox
+      radarEvents: [
+        { id: 'rad-1', type: 'contratacao', targetProcurementId: 'p-1', title: 'Nova oportunidade recebendo propostas', subtitle: 'Corresponde ao alerta "Notebooks no Rio de Janeiro"', detail: 'TRF 2ª Região • Prazo: 28/09 às 10:00 (Faltam 3 dias)', time: 'há 23 minutos', isNew: true, seen: false },
+        { id: 'rad-2', type: 'retificacao', targetProcurementId: 'p-1', title: 'Retificação nº 1 publicada no edital', subtitle: 'Esclarecimento sobre exigência de suporte on-site', detail: 'UASG 090028 - TRF2 • Anexo III retificado', time: 'há 1 hora', isNew: true, seen: false },
+        { id: 'rad-3', type: 'resultado', targetProcurementId: 'p-3', title: 'Resultado homologado observado', subtitle: 'SES/SP adjudicou reagentes diagnósticos', detail: 'Fornecedor: ACME Soluções • R$ 450.000,00', time: 'há 3 horas', isNew: true, seen: false },
+        { id: 'rad-4', type: 'contratacao', targetProcurementId: 'p-2', title: 'Nova oportunidade de material hospitalar', subtitle: 'Corresponde ao alerta "Material Hospitalar em SP"', detail: 'Ministério da Saúde • Encerra em 2 dias', time: 'ontem', isNew: false, seen: true }
+      ],
+
+      // Favorites
+      favorites: [
+        { id: 'fav-1', type: 'contratacao', targetId: 'p-1', title: 'Aquisição de notebooks TRF 2ª Região (RJ)', code: 'Pregão 42/2026 • R$ 1.840.000', date: 'Marcado para Disputar (GO)' },
+        { id: 'fav-2', type: 'produto', targetId: 'prod-1', title: 'Notebook 14\'\' Core i7 16GB SSD', code: 'CATMAT 482910', date: 'Item Estratégico' },
+        { id: 'fav-3', type: 'fornecedor', targetId: 'sup-1', title: 'Positivo Tecnologia S.A.', code: 'CNPJ 01.076.218/0001-65', date: 'Concorrente Monitorado' }
+      ],
+
+      // Suppliers
+      suppliers: [
+        { id: 'sup-1', nome: 'Positivo Tecnologia S.A.', cnpj: '01.076.218/0001-65', resultados: 432, valorTotal: 'R$ 142.800.000,00', principalItem: 'Notebooks e Desktops Corporativos', compradores: 114 },
+        { id: 'sup-2', nome: 'Dell Computadores do Brasil Ltda', cnpj: '72.381.189/0001-10', resultados: 319, valorTotal: 'R$ 189.450.000,00', principalItem: 'Servidores e Laptops de Alto Desempenho', compradores: 98 },
+        { id: 'sup-3', nome: 'ACME Soluções Hospitalares Ltda', cnpj: '12.345.678/0001-90', resultados: 287, valorTotal: 'R$ 38.210.000,00', principalItem: 'Insumos Cirúrgicos e Descartáveis', compradores: 64 },
+        { id: 'sup-4', nome: 'TechSupply Comércio e Serviços Ltda', cnpj: '22.881.902/0001-44', resultados: 194, valorTotal: 'R$ 21.600.000,00', principalItem: 'Monitores e Periféricos de Vídeo', compradores: 51 }
+      ],
+
+      // Contracts with expiration windows (Precise Terminology)
+      contracts: [
+        { id: 'c-1', numero: 'Contrato nº 14/2023', orgao: 'Ministério da Fazenda', fornecedor: 'TechSupply Comércio Ltda', fimVigencia: '14/10/2026', diasRestantes: 28, valor: 'R$ 1.450.000,00', statusColor: 'red', statusText: 'Vence em 28 dias' },
+        { id: 'c-2', numero: 'Contrato nº 08/2024', orgao: 'Tribunal Regional Federal 2ª Região', fornecedor: 'Dell Computadores Ltda', fimVigencia: '02/11/2026', diasRestantes: 47, valor: 'R$ 3.890.000,00', statusColor: 'amber', statusText: 'Vence em 47 dias' },
+        { id: 'c-3', numero: 'Contrato nº 45/2022', orgao: 'Superintendência da Polícia Federal - RJ', fornecedor: 'Positivo Tecnologia S.A.', fimVigencia: '29/11/2026', diasRestantes: 74, valor: 'R$ 820.000,00', statusColor: 'slate', statusText: 'Vence em 74 dias' }
+      ]
+    };
+
+    // Helper: Normalize strings for search (strips accents, lowercases)
+    function normalizeSearch(str) {
+      return (str || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+    }
+
+    // Helper: Currency Formatter
+    function formatCurrency(val) {
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+    }
+
+    // Navigation logic
+    function navigate(viewName) {
+      state.activeView = viewName;
+
+      const views = ['dashboard', 'contratacoes', 'produtos', 'fornecedores', 'contratos', 'radar', 'favoritos', 'interesses', 'historico', 'precos'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) {
+          if (v === viewName || (viewName === 'precos' && v === 'produtos')) {
+            el.classList.remove('hidden');
+          } else {
+            el.classList.add('hidden');
+          }
+        }
+      });
+
+      // Update sidebar nav items
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        const nav = btn.getAttribute('data-nav');
+        if (nav === viewName || (viewName === 'precos' && nav === 'precos')) {
+          btn.className = 'nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold text-slate-900 bg-white border border-slate-200 shadow-xs';
+        } else {
+          btn.className = 'nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors';
+        }
+      });
+
+      closeMobileSidebar();
+      document.getElementById('mainContainer').scrollTop = 0;
+    }
+
+    // Mobile sidebar toggle
+    function toggleMobileSidebar() {
+      const sb = document.getElementById('appSidebar');
+      const bd = document.getElementById('mobileBackdrop');
+      const isOpen = !sb.classList.contains('-translate-x-full');
+      if (isOpen) {
+        sb.classList.add('-translate-x-full');
+        bd.classList.add('hidden');
+      } else {
+        sb.classList.remove('-translate-x-full');
+        bd.classList.remove('hidden');
+      }
+    }
+    function closeMobileSidebar() {
+      const sb = document.getElementById('appSidebar');
+      const bd = document.getElementById('mobileBackdrop');
+      sb.classList.add('-translate-x-full');
+      bd.classList.add('hidden');
+    }
+    document.getElementById('btnToggleMobileSidebar').addEventListener('click', toggleMobileSidebar);
+
+    // Render Dashboard: Work Queue & Triage List
+    function renderDashboardTriage(filter = 'all') {
+      const queueList = document.getElementById('dashboardTriageQueueList');
+      if (!queueList) return;
+
+      let list = state.procurements;
+      if (filter === 'pendente') {
+        list = state.procurements.filter(p => p.decisaoTriagem === 'pendente');
+      } else if (filter === 'go') {
+        list = state.procurements.filter(p => p.decisaoTriagem === 'go');
+      }
+
+      if (list.length === 0) {
+        queueList.innerHTML = `
+          <div class="p-8 text-center text-slate-400 text-xs">
+            Nenhuma oportunidade pendente com este filtro de triagem.
+          </div>
+        `;
+        return;
+      }
+
+      queueList.innerHTML = list.map(p => {
+        const isUrgent = p.diasRestantes <= 3 && p.diasRestantes > 0;
+        let badgeDecisao = '';
+        if (p.decisaoTriagem === 'go') {
+          badgeDecisao = '<span class="px-2.5 py-1 text-xs font-semibold bg-emerald-100 text-emerald-800 rounded-md flex items-center gap-1"><span class="iconify" data-icon="lucide:check-circle-2"></span> GO (Disputar)</span>';
+        } else if (p.decisaoTriagem === 'analisando') {
+          badgeDecisao = '<span class="px-2.5 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-md flex items-center gap-1"><span class="iconify" data-icon="lucide:clock"></span> Em Análise</span>';
+        } else if (p.decisaoTriagem === 'nogo') {
+          badgeDecisao = '<span class="px-2.5 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-md flex items-center gap-1"><span class="iconify" data-icon="lucide:x-circle"></span> Descartado</span>';
+        } else {
+          badgeDecisao = '<span class="px-2.5 py-1 text-xs font-semibold bg-slate-100 text-slate-700 rounded-md border border-slate-200">Aguardando Triagem</span>';
+        }
+
+        return `
+          <div class="p-4 sm:p-5 hover:bg-slate-50/80 transition-colors flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div class="flex-1 space-y-1.5">
+              <div class="flex flex-wrap items-center gap-2">
+                ${badgeDecisao}
+                <span class="px-2 py-0.5 text-xs font-mono font-medium ${isUrgent ? 'bg-red-100 text-red-800' : 'bg-slate-100 text-slate-700'} rounded">
+                  Prazo: ${p.prazoProposta}
+                </span>
+                <span class="px-2 py-0.5 text-xs font-mono bg-slate-100 text-slate-700 rounded border border-slate-200">${p.uf}</span>
+                <span class="text-xs text-slate-400 font-mono">UASG: ${p.uasg} • Proc: ${p.processo}</span>
+              </div>
+
+              <h3 class="font-bold text-sm text-slate-900 leading-snug cursor-pointer hover:underline" onclick="openProcurementDetail('${p.id}')">
+                ${p.objeto}
+              </h3>
+
+              <div class="text-xs text-slate-600 flex flex-wrap items-center gap-x-4 gap-y-1 pt-0.5">
+                <span><strong>Comprador:</strong> ${p.comprador}</span>
+                <span><strong>Valor Estimado:</strong> <span class="font-mono font-bold text-slate-900">${formatCurrency(p.valor)}</span></span>
+                <span><strong>Entrega:</strong> ${p.prazoEntregaDias}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0 self-end lg:self-center">
+              <button onclick="openProcurementDetail('${p.id}')" class="px-3.5 py-2 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-xs inline-flex items-center gap-1.5 transition">
+                <span class="iconify" data-icon="lucide:clipboard-check"></span>
+                <span>Ficha de Triagem</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Update triage counters
+      const pendingCount = state.procurements.filter(p => p.decisaoTriagem === 'pendente').length;
+      const goCount = state.procurements.filter(p => p.decisaoTriagem === 'go').length;
+      document.getElementById('statPendingTriage').textContent = `${pendingCount} editais`;
+      document.getElementById('statGoCount').textContent = `${goCount} editais`;
+      document.getElementById('sidebarPendingTriageCount').textContent = `${pendingCount} pendentes`;
+    }
+
+    function filterTriageQueue(type) {
+      document.querySelectorAll('.triage-filter-btn').forEach(btn => {
+        btn.className = 'triage-filter-btn px-2.5 py-1 text-xs font-medium bg-white text-slate-600 hover:bg-slate-100 rounded-md border border-slate-200';
+      });
+      event.target.className = 'triage-filter-btn px-2.5 py-1 text-xs font-medium bg-slate-900 text-white rounded-md';
+      renderDashboardTriage(type);
+    }
+
+    // Render Dashboard Alerts and Amendments
+    function renderDashboardSupportingSections() {
+      // Interesses / Alertas
+      const intContainer = document.getElementById('dashboardInterestsList');
+      if (intContainer) {
+        intContainer.innerHTML = state.interests.map(item => `
+          <div onclick="filterProcurementsByInterest('${item.product}', '${item.uf}', '${item.buyer}')" class="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition cursor-pointer group">
+            <div class="flex items-center gap-2.5">
+              <span class="iconify text-slate-400 group-hover:text-slate-900 transition-colors text-base" data-icon="lucide:bell"></span>
+              <div>
+                <div class="text-xs font-bold text-slate-900">${item.name}</div>
+                <div class="text-xs text-slate-500">${item.product} · ${item.uf === 'Todos' ? 'Nacional' : item.uf}</div>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-mono">
+              ${item.newMatches} novos
+            </span>
+          </div>
+        `).join('');
+      }
+
+      // Amendments / Retificações
+      const amendContainer = document.getElementById('dashboardAmendmentsFeed');
+      if (amendContainer) {
+        amendContainer.innerHTML = `
+          <div onclick="openProcurementDetail('p-1')" class="p-3 bg-slate-50 border border-slate-200 rounded-lg hover:border-slate-300 cursor-pointer transition">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-900 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span> Retificação nº 1 no Edital de Notebooks
+              </span>
+              <span class="text-slate-400 font-mono text-[11px]">Hoje, 09:12</span>
+            </div>
+            <p class="text-xs text-slate-600 mt-1">TRF 2ª Região publicou alteração no prazo de suporte do item 1. Não houve prorrogação de prazo.</p>
+          </div>
+          <div onclick="openProcurementDetail('p-4')" class="p-3 bg-slate-50 border border-slate-200 rounded-lg hover:border-slate-300 cursor-pointer transition">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-900 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span> Resposta aos Esclarecimentos (Monitores)
+              </span>
+              <span class="text-slate-400 font-mono text-[11px]">Ontem, 16:30</span>
+            </div>
+            <p class="text-xs text-slate-600 mt-1">Superintendência da Polícia Federal confirmou aceitação de conectores DisplayPort e HDMI.</p>
+          </div>
+        `;
+      }
+    }
+
+    // Render Procurements Table
+    function renderProcurements(items = state.procurements) {
+      const tbody = document.getElementById('procurementsTableBody');
+      const countEl = document.getElementById('procurementsCount');
+      if (!tbody) return;
+
+      countEl.textContent = `Exibindo ${items.length} oportunidades`;
+
+      if (items.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="py-8 text-center text-slate-400 text-xs">
+              Nenhuma oportunidade encontrada com os filtros selecionados. Tente ajustar os termos de pesquisa.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = items.map(p => {
+        let badgeDecisao = '';
+        if (p.decisaoTriagem === 'go') {
+          badgeDecisao = '<span class="px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-800 rounded">GO</span>';
+        } else if (p.decisaoTriagem === 'analisando') {
+          badgeDecisao = '<span class="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 rounded">Análise</span>';
+        } else if (p.decisaoTriagem === 'nogo') {
+          badgeDecisao = '<span class="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded">NO-GO</span>';
+        } else {
+          badgeDecisao = '<span class="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded">Pendente</span>';
+        }
+
+        const isUrgent = p.diasRestantes <= 3 && p.diasRestantes > 0;
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="py-3 px-4 font-mono">
+              <div class="font-bold text-xs ${isUrgent ? 'text-red-700' : 'text-slate-900'}">${p.prazoProposta}</div>
+              <div class="text-[11px] text-slate-500">${p.diasRestantes > 0 ? `Restam ${p.diasRestantes} dias` : 'Homologado'}</div>
+            </td>
+            <td class="py-3 px-4">
+              <div class="font-bold text-xs text-slate-900 max-w-sm leading-snug cursor-pointer hover:underline" onclick="openProcurementDetail('${p.id}')">${p.objeto}</div>
+              <div class="text-xs text-slate-500 mt-0.5 font-mono">Proc: ${p.processo} • UASG: ${p.uasg}</div>
+            </td>
+            <td class="py-3 px-4 text-xs text-slate-700 font-medium">${p.comprador}</td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-0.5 text-xs font-mono font-semibold bg-slate-100 text-slate-700 rounded border border-slate-200">${p.uf}</span>
+            </td>
+            <td class="py-3 px-4 font-mono font-bold text-xs text-slate-900">
+              ${formatCurrency(p.valor)}
+            </td>
+            <td class="py-3 px-4">
+              ${badgeDecisao}
+            </td>
+            <td class="py-3 px-4 text-right">
+              <button onclick="openProcurementDetail('${p.id}')" class="px-3 py-1.5 text-xs font-semibold text-slate-900 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg shadow-xs transition">
+                Ficha do Edital
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Filter Procurements with Exclusion logic and Accent Normalization
+    function filterProcurements() {
+      const rawSearch = document.getElementById('procurementsSearch').value;
+      const uf = document.getElementById('procurementsUf').value;
+      const triage = document.getElementById('procurementsTriageFilter').value;
+      const segment = document.getElementById('procurementsSegment').value;
+      const mod = document.getElementById('procurementsModalidade').value;
+      const sit = document.getElementById('procurementsSituacao').value;
+
+      // Parse tokens for positive search vs negative exclusions (e.g. -servico)
+      const tokens = rawSearch.split(' ').filter(Boolean);
+      const positiveTokens = [];
+      const negativeTokens = [];
+
+      tokens.forEach(tok => {
+        if (tok.startsWith('-') && tok.length > 1) {
+          negativeTokens.push(normalizeSearch(tok.slice(1)));
+        } else {
+          positiveTokens.push(normalizeSearch(tok));
+        }
+      });
+
+      const filtered = state.procurements.filter(p => {
+        // Build searchable text including items descriptions
+        const itemsText = p.itens ? p.itens.map(i => `${i.desc} ${i.catmat}`).join(' ') : '';
+        const fullSearchable = normalizeSearch(`${p.objeto} ${p.comprador} ${p.processo} ${p.uasg} ${itemsText}`);
+
+        // Check positive keywords
+        const matchesPositive = positiveTokens.every(tok => fullSearchable.includes(tok));
+
+        // Check negative exclusions
+        const matchesNegative = negativeTokens.some(tok => fullSearchable.includes(tok));
+
+        if (!matchesPositive || matchesNegative) return false;
+
+        const matchesUf = !uf || p.uf === uf;
+        const matchesTriage = !triage || p.decisaoTriagem === triage;
+        const matchesSegment = !segment || p.segmento === segment;
+        const matchesMod = !mod || p.modalidade === mod;
+        const matchesSit = !sit || p.situacao === sit;
+
+        return matchesUf && matchesTriage && matchesSegment && matchesMod && matchesSit;
+      });
+
+      renderProcurements(filtered);
+    }
+
+    function resetProcurementFilters() {
+      document.getElementById('procurementsSearch').value = '';
+      document.getElementById('procurementsUf').value = '';
+      document.getElementById('procurementsTriageFilter').value = '';
+      document.getElementById('procurementsSegment').value = '';
+      document.getElementById('procurementsModalidade').value = '';
+      document.getElementById('procurementsSituacao').value = '';
+      filterProcurements();
+    }
+
+    // Filter by specific interest without inheriting stale filters
+    function filterProcurementsByInterest(productName, uf, buyer) {
+      navigate('contratacoes');
+      resetProcurementFilters();
+
+      const searchBox = document.getElementById('procurementsSearch');
+      if (searchBox) searchBox.value = productName;
+      
+      if (uf && uf !== 'Todos') {
+        const ufBox = document.getElementById('procurementsUf');
+        if (ufBox) ufBox.value = uf;
+      }
+      filterProcurements();
+    }
+
+    // Open Procurement Details Modal (Dynamically loading specific procurement items)
+    function openProcurementDetail(id) {
+      const p = state.procurements.find(item => item.id === id);
+      if (!p) return;
+
+      state.activeProcurementId = id;
+
+      document.getElementById('detailProcurementTitle').textContent = p.objeto;
+      document.getElementById('detailProcurementOrg').textContent = p.comprador;
+      document.getElementById('detailProcurementUasg').textContent = `UASG: ${p.uasg}`;
+      document.getElementById('detailProcesso').textContent = `Processo: ${p.processo}`;
+      document.getElementById('detailProcurementUniqueId').textContent = `ID Oficial: ${p.uasg}-05-${p.processo}`;
+      document.getElementById('detailUfBadge').textContent = `UF: ${p.uf}`;
+      document.getElementById('detailSegmentBadge').textContent = p.segmento;
+      document.getElementById('detailValor').textContent = formatCurrency(p.valor);
+      document.getElementById('detailModalidade').textContent = p.modalidade;
+      document.getElementById('detailDeadline').textContent = p.prazoProposta;
+      document.getElementById('detailDeadlineCountdown').textContent = p.diasRestantes > 0 ? `Faltam ${p.diasRestantes} dias corridos` : 'Encerrado';
+      document.getElementById('detailDeliveryPlace').textContent = p.localEntrega;
+      document.getElementById('detailDeliveryDays').textContent = `Prazo: ${p.prazoEntregaDias}`;
+      document.getElementById('detailPaymentCondition').textContent = p.condicoesPagamento;
+
+      // Status badge
+      const statusBadge = document.getElementById('detailBadgeStatus');
+      statusBadge.textContent = p.situacao;
+      statusBadge.className = p.situacao === 'Recebendo Propostas' ? 'px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-800 rounded' : 'px-2 py-0.5 text-xs font-semibold bg-slate-100 text-slate-700 rounded';
+
+      // Decision text
+      updateDecisionButtonsUI(p.decisaoTriagem);
+
+      // Render Specific Items Table for this procurement
+      const itemsTbody = document.getElementById('detailItemsTableBody');
+      document.getElementById('detailItemsCountLabel').textContent = `${p.itens.length} itens cadastrados`;
+      itemsTbody.innerHTML = p.itens.map(item => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-2.5 px-3 font-mono font-bold text-slate-900">${item.num}</td>
+          <td class="py-2.5 px-3">
+            <div class="font-medium text-slate-900">${item.desc}</div>
+            <div class="text-[11px] text-slate-500 font-mono">CATMAT: ${item.catmat}</div>
+          </td>
+          <td class="py-2.5 px-3 font-mono">${item.qtd} un</td>
+          <td class="py-2.5 px-3 font-mono">${formatCurrency(item.unitario)}</td>
+          <td class="py-2.5 px-3 font-mono font-bold text-slate-950">${formatCurrency(item.total)}</td>
+          <td class="py-2.5 px-3 text-right">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${item.compativel ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'}">
+              ${item.compativel ? 'Compatível' : 'Verificar'}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+
+      // Render Requirements Checklist
+      const reqList = document.getElementById('detailRequirementsChecklist');
+      if (p.requisitos && p.requisitos.length > 0) {
+        reqList.innerHTML = p.requisitos.map(r => `
+          <div class="p-2.5 bg-white border border-slate-200 rounded-lg flex items-start gap-2">
+            <span class="iconify ${r.ok ? 'text-emerald-600' : 'text-amber-500'} text-base shrink-0 mt-0.5" data-icon="${r.ok ? 'lucide:check-circle' : 'lucide:alert-circle'}"></span>
+            <span class="text-xs text-slate-700">${r.texto}</span>
+          </div>
+        `).join('');
+      } else {
+        reqList.innerHTML = '<div class="text-xs text-slate-400 p-2 col-span-2">Sem exigências especiais identificadas além da habilitação regular (CND, FGTS, Trabalhista).</div>';
+      }
+
+      document.getElementById('modalProcurementDetail').classList.remove('hidden');
+    }
+
+    function closeModalProcurementDetail() {
+      document.getElementById('modalProcurementDetail').classList.add('hidden');
+    }
+
+    function setProcurementTriageDecision(decision) {
+      if (!state.activeProcurementId) return;
+      const p = state.procurements.find(item => item.id === state.activeProcurementId);
+      if (!p) return;
+
+      p.decisaoTriagem = decision;
+      updateDecisionButtonsUI(decision);
+      renderDashboardTriage();
+      renderProcurements();
+
+      const messages = {
+        go: 'Edital marcado para disputar (GO)! Movido para propostas prioritárias.',
+        analisando: 'Edital colocado em análise pela equipe técnica.',
+        nogo: 'Edital descartado (NO-GO).'
+      };
+      showToast(messages[decision] || 'Decisão atualizada.');
+    }
+
+    function updateDecisionButtonsUI(decision) {
+      const label = document.getElementById('detailDecisionStatusText');
+      if (decision === 'go') {
+        label.innerHTML = '<span class="text-emerald-700 font-bold flex items-center gap-1.5"><span class="iconify" data-icon="lucide:check-circle-2"></span> Participando (GO) - Proposta em Elaboração</span>';
+      } else if (decision === 'analisando') {
+        label.innerHTML = '<span class="text-amber-700 font-bold flex items-center gap-1.5"><span class="iconify" data-icon="lucide:clock"></span> Em Análise Técnica / Comercial</span>';
+      } else if (decision === 'nogo') {
+        label.innerHTML = '<span class="text-red-700 font-bold flex items-center gap-1.5"><span class="iconify" data-icon="lucide:x-circle"></span> Descartado (NO-GO)</span>';
+      } else {
+        label.innerHTML = '<span class="text-slate-500 font-medium">Aguardando Avaliação</span>';
+      }
+    }
+
+    function downloadEditalMock() {
+      showToast('Download do Edital Oficial e Anexos (PDF) concluído.');
+    }
+
+    // Product Selection & Dynamic Analytics Recalculation
+    function renderProductsCatalog() {
+      const grid = document.getElementById('productsCatalogGrid');
+      if (!grid) return;
+
+      grid.innerHTML = state.products.map(prod => `
+        <div onclick="selectProduct('${prod.id}')" class="border ${prod.id === 'prod-1' ? 'border-slate-900 bg-slate-50/50' : 'border-slate-200 bg-white'} rounded-xl p-4 cursor-pointer hover:border-slate-400 transition product-card" id="card-${prod.id}">
+          <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+            <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">CATMAT ${prod.catmat}</span>
+            <span>${prod.tipo}</span>
+          </div>
+          <h3 class="font-bold text-xs text-slate-900 line-clamp-2 leading-snug">${prod.nome}</h3>
+          <div class="mt-3 pt-3 border-t border-slate-100 flex items-baseline justify-between">
+            <span class="text-xs text-slate-500">Mediana Calculada:</span>
+            <span class="text-sm font-bold font-mono text-slate-950">${formatCurrency(prod.mediana)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selectProduct(id) {
+      const prod = state.products.find(p => p.id === id);
+      if (!prod) return;
+
+      // Update card active styles
+      document.querySelectorAll('.product-card').forEach(c => {
+        c.className = 'border border-slate-200 bg-white rounded-xl p-4 cursor-pointer hover:border-slate-400 transition product-card';
+      });
+      const activeCard = document.getElementById(`card-${id}`);
+      if (activeCard) {
+        activeCard.className = 'border border-slate-900 bg-slate-50/50 rounded-xl p-4 cursor-pointer hover:border-slate-400 transition product-card';
+      }
+
+      // Re-populate details
+      document.getElementById('activeProductName').textContent = prod.nome;
+      document.getElementById('activeProductCatmat').textContent = `CATMAT ${prod.catmat}`;
+      document.getElementById('activeProductType').textContent = prod.tipo;
+      document.getElementById('activeProductObservationScope').textContent = `Base: últimos 24 meses (${prod.obs} itens homologados)`;
+
+      document.getElementById('statMediana').textContent = formatCurrency(prod.mediana);
+      document.getElementById('statMedia').textContent = formatCurrency(prod.media);
+      document.getElementById('statDesvio').textContent = `Desvio padrão: ${formatCurrency(prod.desvio)}`;
+      document.getElementById('statMinimo').textContent = formatCurrency(prod.min);
+      document.getElementById('statMinimoBuyer').textContent = prod.minBuyer;
+      document.getElementById('statMaximo').textContent = formatCurrency(prod.max);
+      document.getElementById('statMaximoContext').textContent = prod.maxContext;
+      document.getElementById('statObs').textContent = `${prod.obs} itens`;
+      document.getElementById('statSuppliersCount').textContent = `${prod.fornecedores} empresas distintas`;
+
+      // Recalculate Y-axis labels
+      document.getElementById('chartYMax').textContent = formatCurrency(prod.max * 1.05);
+      document.getElementById('chartYMid').textContent = formatCurrency(prod.mediana);
+      document.getElementById('chartYMin').textContent = formatCurrency(prod.min * 0.95);
+
+      // Rebuild Dynamic SVG Polyline and circles
+      const svg = document.getElementById('productSvgChart');
+      svg.innerHTML = `
+        <line x1="0" y1="20" x2="500" y2="20" stroke="#f1f5f9" stroke-width="1" />
+        <line x1="0" y1="60" x2="500" y2="60" stroke="#f1f5f9" stroke-width="1" />
+        <line x1="0" y1="100" x2="500" y2="100" stroke="#f1f5f9" stroke-width="1" />
+        <line x1="0" y1="65" x2="500" y2="65" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4" />
+        <path d="${prod.svgPoints}" fill="none" stroke="#0f172a" stroke-width="2.5" />
+        ${prod.svgCircles.map(c => `<circle cx="${c.cx}" cy="${c.cy}" r="4" fill="#0f172a" />`).join('')}
+      `;
+
+      // Update Historical bids table
+      const histTable = document.getElementById('productHistoricalTableBody');
+      histTable.innerHTML = prod.historicalBids.map(b => `
+        <tr>
+          <td class="py-2.5 px-3 font-medium text-slate-900">${b.orgao}</td>
+          <td class="py-2.5 px-3 text-slate-600">${b.fornecedor}</td>
+          <td class="py-2.5 px-3 font-mono">${b.qtd}</td>
+          <td class="py-2.5 px-3 font-mono font-bold text-slate-950">${formatCurrency(b.preco)}</td>
+          <td class="py-2.5 px-3 text-slate-500 font-mono">${b.data}</td>
+        </tr>
+      `).join('');
+    }
+
+    function toggleActiveProductFavorite() {
+      const activeName = document.getElementById('activeProductName').textContent;
+      const existing = state.favorites.find(f => f.title === activeName);
+      if (existing) {
+        state.favorites = state.favorites.filter(f => f.title !== activeName);
+        showToast('Produto desfavoritado.');
+      } else {
+        state.favorites.push({
+          id: 'fav-' + Date.now(),
+          type: 'produto',
+          title: activeName,
+          code: 'Item Salvo',
+          date: 'Hoje'
+        });
+        showToast('Produto salvo nos favoritos!');
+      }
+      renderFavorites();
+    }
+
+    function createInterestForCurrentProduct() {
+      const activeName = document.getElementById('activeProductName').textContent;
+      document.getElementById('interestInputName').value = activeName.split(' ')[0] + ' Alerta Comercial';
+      openModalCreateInterest();
+    }
+
+    // Render Suppliers Grid
+    function renderSuppliers(items = state.suppliers) {
+      const grid = document.getElementById('suppliersGrid');
+      if (!grid) return;
+
+      grid.innerHTML = items.map(s => {
+        const isFav = state.favorites.some(f => f.code.includes(s.cnpj));
+        return `
+          <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-3 hover:border-slate-300 transition">
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900">${s.nome}</h3>
+                <div class="text-xs font-mono text-slate-500 mt-0.5">CNPJ: ${s.cnpj}</div>
+              </div>
+              <button onclick="toggleFavoriteSupplier('${s.id}')" class="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition" title="Acompanhar concorrente">
+                <span class="iconify ${isFav ? 'text-amber-500' : 'text-slate-400'}" data-icon="lucide:star"></span>
+              </button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100">
+              <div>
+                <span class="text-slate-500">Itens Homologados:</span>
+                <div class="font-bold font-mono text-slate-900 text-sm">${s.resultados} itens</div>
+              </div>
+              <div>
+                <span class="text-slate-500">Total Homologado:</span>
+                <div class="font-bold font-mono text-slate-900 text-sm">${s.valorTotal}</div>
+              </div>
+            </div>
+
+            <div class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200/60">
+              <strong>Família Principal:</strong> ${s.principalItem} em ${s.compradores} órgãos distintos.
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterSuppliers() {
+      const q = normalizeSearch(document.getElementById('supplierSearchInput').value);
+      const filtered = state.suppliers.filter(s => normalizeSearch(s.nome).includes(q) || s.cnpj.includes(q));
+      renderSuppliers(filtered);
+    }
+
+    function toggleFavoriteSupplier(id) {
+      const s = state.suppliers.find(item => item.id === id);
+      if (!s) return;
+      const existingIndex = state.favorites.findIndex(f => f.code.includes(s.cnpj));
+      if (existingIndex >= 0) {
+        state.favorites.splice(existingIndex, 1);
+        showToast(`Removido dos monitoramentos: ${s.nome}`);
+      } else {
+        state.favorites.push({
+          id: 'fav-' + Date.now(),
+          type: 'fornecedor',
+          title: s.nome,
+          code: `CNPJ ${s.cnpj}`,
+          date: 'Hoje'
+        });
+        showToast(`Adicionado aos monitoramentos: ${s.nome}`);
+      }
+      renderSuppliers();
+      renderFavorites();
+    }
+
+    // Render Contracts
+    function renderContracts() {
+      const tbody = document.getElementById('contractsTableBody');
+      if (!tbody) return;
+
+      tbody.innerHTML = state.contracts.map(c => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-3 px-4 font-bold text-slate-900 font-mono">${c.numero}</td>
+          <td class="py-3 px-4 text-slate-700">${c.orgao}</td>
+          <td class="py-3 px-4 text-slate-600 font-medium">${c.fornecedor}</td>
+          <td class="py-3 px-4 font-mono font-medium text-slate-900">${c.fimVigencia}</td>
+          <td class="py-3 px-4 font-mono font-bold text-slate-900">${c.valor}</td>
+          <td class="py-3 px-4">
+            <span class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full ${
+              c.statusColor === 'red' ? 'bg-red-50 text-red-700 border border-red-200' :
+              c.statusColor === 'amber' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+              'bg-slate-100 text-slate-700 border border-slate-200'
+            }">
+              ${c.statusText}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Render Radar Feed with Persistent Active Filter
+    function renderRadar(filter = state.radarFilter) {
+      state.radarFilter = filter;
+      const container = document.getElementById('radarEventFeed');
+      if (!container) return;
+
+      // Update tab active classes
+      document.querySelectorAll('.radar-tab').forEach(b => {
+        b.className = 'radar-tab pb-2.5 px-2 font-medium text-slate-500 hover:text-slate-900';
+      });
+      const activeTabBtn = document.getElementById(`radar-tab-${filter}`);
+      if (activeTabBtn) {
+        activeTabBtn.className = 'radar-tab pb-2.5 px-2 font-semibold text-slate-900 border-b-2 border-slate-900';
+      }
+
+      let filtered = state.radarEvents;
+      if (filter === 'unread') filtered = state.radarEvents.filter(e => !e.seen);
+      else if (filter !== 'all') filtered = state.radarEvents.filter(e => e.type === filter);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center text-slate-400 border border-slate-200 rounded-xl bg-slate-50 text-xs">
+            Nenhum alerta registrado com o filtro selecionado.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(ev => `
+        <div class="p-4 border ${ev.seen ? 'border-slate-200 bg-white' : 'border-slate-300 bg-slate-50/50 shadow-xs'} rounded-xl transition flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <div class="mt-1">
+              ${!ev.seen ? '<span class="w-2.5 h-2.5 rounded-full bg-emerald-600 block"></span>' : '<span class="w-2.5 h-2.5 rounded-full border border-slate-300 block"></span>'}
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-900">${ev.title}</span>
+                <span class="text-[11px] font-mono text-slate-400">• ${ev.time}</span>
+              </div>
+              <div class="text-xs text-slate-700 mt-0.5">${ev.subtitle}</div>
+              <div class="text-xs text-slate-500 font-mono mt-1">${ev.detail}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+            ${ev.targetProcurementId ? `
+              <button onclick="openProcurementDetail('${ev.targetProcurementId}')" class="px-3 py-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-xs inline-flex items-center gap-1">
+                <span>Ver Edital</span>
+              </button>
+            ` : ''}
+            ${!ev.seen ? `<button onclick="markEventSeen('${ev.id}')" class="px-2.5 py-1.5 text-xs font-medium bg-white border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-700 transition">Marcar visto</button>` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      // Update badge counts
+      const unreadCount = state.radarEvents.filter(e => !e.seen).length;
+      document.getElementById('radarUnreadBadge').textContent = `${unreadCount} não vistos`;
+      document.getElementById('sidebarRadarCount').textContent = `${unreadCount} novos`;
+      const headerBadge = document.getElementById('headerRadarBadge');
+      if (unreadCount === 0) headerBadge.classList.add('hidden');
+      else headerBadge.classList.remove('hidden');
+    }
+
+    function filterRadar(type) {
+      renderRadar(type);
+    }
+
+    function markEventSeen(id) {
+      const ev = state.radarEvents.find(e => e.id === id);
+      if (ev) {
+        ev.seen = true;
+        renderRadar(state.radarFilter); // Keeps active tab!
+      }
+    }
+
+    function markAllRadarRead() {
+      state.radarEvents.forEach(e => e.seen = true);
+      renderRadar(state.radarFilter);
+      showToast('Todos os alertas foram marcados como vistos.');
+    }
+
+    // Render Favorites
+    function renderFavorites(filter = 'all') {
+      const container = document.getElementById('favoritesList');
+      if (!container) return;
+
+      let list = state.favorites;
+      if (filter !== 'all') list = state.favorites.filter(f => f.type === filter);
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs border border-slate-200 rounded-xl">Nenhum registro salvo nesta categoria.</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(f => `
+        <div class="p-4 border border-slate-200 rounded-xl bg-white flex items-center justify-between hover:border-slate-300 transition">
+          <div class="flex items-center gap-3">
+            <span class="iconify text-amber-500 text-lg" data-icon="lucide:bookmark"></span>
+            <div>
+              <div class="text-xs font-bold text-slate-900">${f.title}</div>
+              <div class="text-xs text-slate-500 font-mono">${f.code} • ${f.date}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            ${f.targetId && f.type === 'contratacao' ? `
+              <button onclick="openProcurementDetail('${f.targetId}')" class="px-2.5 py-1 text-xs font-semibold bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-800">
+                Ficha do Edital
+              </button>
+            ` : ''}
+            <button onclick="removeFavorite('${f.id}')" class="text-xs text-slate-400 hover:text-red-600 p-1.5 transition" title="Remover dos salvos">
+              <span class="iconify text-base" data-icon="lucide:trash-2"></span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('favsNavCount').textContent = state.favorites.length;
+    }
+
+    function removeFavorite(id) {
+      state.favorites = state.favorites.filter(f => f.id !== id);
+      renderFavorites();
+      showToast('Item removido dos salvos.');
+    }
+
+    function filterFavorites(type) {
+      document.querySelectorAll('.fav-tab').forEach(b => {
+        b.className = 'fav-tab px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg font-medium';
+      });
+      event.target.className = 'fav-tab px-3 py-1.5 bg-slate-900 text-white rounded-lg font-medium';
+      renderFavorites(type);
+    }
+
+    // Render Interests (Alert Rules)
+    function renderInterests() {
+      const grid = document.getElementById('interestsGrid');
+      if (!grid) return;
+
+      grid.innerHTML = state.interests.map(item => `
+        <div class="border border-slate-200 rounded-xl p-5 bg-white space-y-3">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-800 rounded border border-emerald-200">Alerta Comercial Ativo</span>
+              <h3 class="text-sm font-bold text-slate-900 mt-1">${item.name}</h3>
+            </div>
+            <button onclick="deleteInterest('${item.id}')" class="text-slate-400 hover:text-red-600 transition p-1" title="Excluir alerta">
+              <span class="iconify text-base" data-icon="lucide:trash-2"></span>
+            </button>
+          </div>
+
+          <div class="space-y-1 text-xs text-slate-600">
+            <div><strong>Nicho / Item:</strong> ${item.product}</div>
+            <div><strong>Região de Entrega:</strong> ${item.uf === 'Todos' ? 'Nacional (Todas as UFs)' : item.uf}</div>
+            <div><strong>Órgão:</strong> ${item.buyer}</div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span class="text-emerald-700 font-semibold flex items-center gap-1 font-mono">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${item.newMatches} editais novos
+            </span>
+            <button onclick="filterProcurementsByInterest('${item.product}', '${item.uf}', '${item.buyer}')" class="text-slate-900 hover:underline font-semibold">
+              Triar Oportunidades
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('interestsNavCount').textContent = state.interests.length;
+    }
+
+    function openModalCreateInterest() {
+      document.getElementById('modalCreateInterest').classList.remove('hidden');
+    }
+    function closeModalCreateInterest() {
+      document.getElementById('modalCreateInterest').classList.add('hidden');
+    }
+    function handleSaveInterest(e) {
+      e.preventDefault();
+      const name = document.getElementById('interestInputName').value;
+      const product = document.getElementById('interestInputProduct').value;
+      const uf = document.getElementById('interestInputUf').value;
+      const buyer = document.getElementById('interestInputBuyer').value;
+
+      const newInt = {
+        id: 'int-' + Date.now(),
+        name,
+        product,
+        uf,
+        buyer,
+        newMatches: 1
+      };
+
+      state.interests.unshift(newInt);
+
+      // Add corresponding radar event
+      state.radarEvents.unshift({
+        id: 'rad-' + Date.now(),
+        type: 'contratacao',
+        title: `Novo alerta ativado para "${name}"`,
+        subtitle: `Monitoramento ativo de compras federais e estaduais`,
+        detail: `Item: ${product} • UF: ${uf}`,
+        time: 'Agora',
+        isNew: true,
+        seen: false
+      });
+
+      renderInterests();
+      renderDashboardSupportingSections();
+      renderRadar();
+      closeModalCreateInterest();
+      showToast(`Alerta "${name}" configurado com sucesso!`);
+    }
+
+    function deleteInterest(id) {
+      state.interests = state.interests.filter(i => i.id !== id);
+      renderInterests();
+      renderDashboardSupportingSections();
+      showToast('Alerta removido.');
+    }
+
+    // Quick Question Presets
+    function presetQuery(type) {
+      if (type === 'notebooks_rj') {
+        navigate('contratacoes');
+        document.getElementById('procurementsSearch').value = 'notebook';
+        document.getElementById('procurementsUf').value = 'RJ';
+        filterProcurements();
+      } else if (type === 'precos_monitores') {
+        navigate('produtos');
+        selectProduct('prod-2');
+      } else if (type === 'contratos_vencendo') {
+        navigate('contratos');
+      }
+    }
+
+    // Quick Global Search with Grouped Results Dropdown
+    function handleGlobalSearch(term) {
+      const dropdown = document.getElementById('globalSearchResultsDropdown');
+      const list = document.getElementById('globalSearchResultsList');
+      const q = normalizeSearch(term);
+
+      if (!q || q.length < 2) {
+        dropdown.classList.add('hidden');
+        return;
+      }
+
+      const matchedProcurements = state.procurements.filter(p => normalizeSearch(`${p.objeto} ${p.uasg} ${p.processo}`).includes(q)).slice(0, 3);
+      const matchedProducts = state.products.filter(p => normalizeSearch(`${p.nome} ${p.catmat}`).includes(q)).slice(0, 2);
+      const matchedSuppliers = state.suppliers.filter(s => normalizeSearch(`${s.nome} ${s.cnpj}`).includes(q)).slice(0, 2);
+
+      let html = '';
+
+      if (matchedProcurements.length > 0) {
+        html += `<div class="p-2 bg-slate-50 text-[11px] font-bold uppercase text-slate-500">Editais & Oportunidades</div>`;
+        html += matchedProcurements.map(p => `
+          <div onclick="openProcurementDetail('${p.id}'); hideGlobalSearchDropdown()" class="p-2.5 hover:bg-slate-50 cursor-pointer">
+            <div class="font-bold text-slate-900">${p.objeto}</div>
+            <div class="text-[11px] text-slate-500 font-mono">${p.comprador} • Prazo: ${p.prazoProposta}</div>
+          </div>
+        `).join('');
+      }
+
+      if (matchedProducts.length > 0) {
+        html += `<div class="p-2 bg-slate-50 text-[11px] font-bold uppercase text-slate-500">Produtos (CATMAT)</div>`;
+        html += matchedProducts.map(prod => `
+          <div onclick="navigate('produtos'); selectProduct('${prod.id}'); hideGlobalSearchDropdown()" class="p-2.5 hover:bg-slate-50 cursor-pointer">
+            <div class="font-bold text-slate-900">${prod.nome}</div>
+            <div class="text-[11px] text-slate-500 font-mono">CATMAT ${prod.catmat} • Mediana: ${formatCurrency(prod.mediana)}</div>
+          </div>
+        `).join('');
+      }
+
+      if (matchedSuppliers.length > 0) {
+        html += `<div class="p-2 bg-slate-50 text-[11px] font-bold uppercase text-slate-500">Fornecedores Concorrentes</div>`;
+        html += matchedSuppliers.map(s => `
+          <div onclick="navigate('fornecedores'); hideGlobalSearchDropdown()" class="p-2.5 hover:bg-slate-50 cursor-pointer">
+            <div class="font-bold text-slate-900">${s.nome}</div>
+            <div class="text-[11px] text-slate-500 font-mono">CNPJ: ${s.cnpj} • ${s.resultados} itens homologados</div>
+          </div>
+        `).join('');
+      }
+
+      if (!html) {
+        html = `<div class="p-4 text-center text-slate-400">Nenhum resultado encontrado para "${term}".</div>`;
+      }
+
+      list.innerHTML = html;
+      dropdown.classList.remove('hidden');
+    }
+
+    function hideGlobalSearchDropdown() {
+      document.getElementById('globalSearchResultsDropdown').classList.add('hidden');
+    }
+
+    // Sync status and triggers
+    function openSyncStatusModal() {
+      document.getElementById('modalSyncStatus').classList.remove('hidden');
+    }
+    function closeSyncStatusModal() {
+      document.getElementById('modalSyncStatus').classList.add('hidden');
+    }
+    function triggerQuickSync() {
+      showToast('Verificando novas publicações no Compras.gov.br...');
+      setTimeout(() => {
+        showToast('Base sincronizada com sucesso: 12 novas oportunidades detectadas.');
+      }, 1000);
+    }
+
+    function exportData(format, entity) {
+      showToast(`Exportação do relatório comercial (${entity}.${format}) iniciada com sucesso.`);
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toastNotification');
+      const msgEl = document.getElementById('toastMessage');
+      msgEl.textContent = message;
+      toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-12');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-12');
+      }, 3000);
+    }
+
+    // Global Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('globalSearchInput');
+        searchInput.focus();
+        searchInput.select();
+      } else if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        document.getElementById('globalSearchInput').focus();
+      } else if (e.key === 'Escape') {
+        closeModalCreateInterest();
+        closeModalProcurementDetail();
+        closeSyncStatusModal();
+        hideGlobalSearchDropdown();
+      }
+    });
+
+    // Close global dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      const searchBox = document.getElementById('globalSearchInput');
+      const dropdown = document.getElementById('globalSearchResultsDropdown');
+      if (searchBox && dropdown && !searchBox.contains(e.target) && !dropdown.contains(e.target)) {
+        hideGlobalSearchDropdown();
+      }
+    });
+
+    // Initialize App
+    window.addEventListener('DOMContentLoaded', () => {
+      renderDashboardTriage();
+      renderDashboardSupportingSections();
+      renderProcurements();
+      renderProductsCatalog();
+      selectProduct('prod-1');
+      renderSuppliers();
+      renderContracts();
+      renderRadar('all');
+      renderFavorites();
+      renderInterests();
+    });
+  </script>
+</body>
+</html>

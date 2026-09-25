@@ -1,0 +1,12 @@
+schema_version: 1
+agent_id: claude-code
+artifacts_dir: ai
+raw_dir: ai/raw
+knowledge_dir: ai/knowledge
+constitution_path: ai/memory/constitution.md
+learnings_dir: ai/memory/learnings
+programs_root: ai/programs
+id_width: 3
+git_branch_automation: false
+architecture_rules: []
+code_exclusions: []

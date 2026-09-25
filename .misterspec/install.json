@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "misterspec_version": "v2.0.1",
+  "agent": {
+    "id": "claude-code",
+    "integration_path": ".claude/skills"
+  }
+}
